@@ -1,0 +1,38 @@
+{
+  "name": "rest-ws",
+  "version": "1.0.0",
+  "description": "Library for creating powerful self-documenting and testable REST + WebSocket API's.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kallaspriit/node-rest-ws.git"
+  },
+  "keywords": [
+    "node",
+    "rest",
+    "websocket",
+    "api",
+    "self",
+    "documenting",
+    "test",
+    "interface"
+  ],
+  "author": "Priit Kallas <kallaspriit@gmail.com> (http://stagnationlab.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kallaspriit/node-rest-ws/issues"
+  },
+  "homepage": "https://github.com/kallaspriit/node-rest-ws",
+  "dependencies": {
+    "glob": "^4.3.1",
+    "logviking": "^1.0.0",
+    "q": "^1.1.2",
+    "restify": "^2.8.3",
+    "ws": "^0.6.3",
+    "xtend": "^4.0.0"
+  }
+}

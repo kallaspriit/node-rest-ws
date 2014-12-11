@@ -1,0 +1,104 @@
+HTML,
+BODY {
+	width: 100%;
+	height: 100%;
+}
+BODY {
+	overflow-y: scroll;
+}
+
+.conditional {
+	display: none;
+}
+BODY.request-mode-rest .conditional.show-rest {
+	display: inline-block;
+}
+BODY.request-mode-websocket .conditional.show-websocket {
+	display: inline-block;
+}
+
+.websocket-log {
+	height: 200px;
+	margin: 60px 0 -60px 0;
+	background-color: #FBFBFB;
+	box-shadow: inset 1px 1px 1px #CCC;
+	overflow: auto;
+	font-family: "courier new", monospace;
+}
+.websocket-log-row {
+	padding: 2px 10px;
+}
+
+.api-namespace-wrap {
+	display: none;
+	padding: 60px 0;
+}
+.namespace-anchor {
+	display: block;
+	position: relative;
+	top: -40px;
+	background-color: #F00;
+	visibility: hidden;
+}
+
+.execute-btn {
+	width: 80px;
+	text-align: center;
+}
+
+.api-description {
+	margin-bottom: 20px;
+	white-space: pre;
+}
+
+.handler-list {
+}
+.handler-list LI {
+	display: inline-block;
+	margin-right: 4px;
+}
+
+.handler-row {
+	margin-bottom: 20px;
+}
+.handler-method {
+	color: #666;
+}
+.handler-description {
+	font-weight: bold;
+	margin-bottom: 20px;
+	line-height: 1em;
+	white-space: pre;
+}
+.handler-returns {
+	font-size: 80%;
+	color: #666;
+}
+
+.parameter-type {
+	color: #666;
+	text-decoration: underline;
+}
+
+.response-wrap {
+	position: relative;
+	display: none;
+	padding: 20px;
+	border: 1px dashed #CCC;
+	white-space: pre;
+	z-index: 1;
+}
+.response-title {
+	display: none;
+	position: relative;
+	z-index: 2;
+	text-align: right;
+}
+.response-success {
+	border-color: #090;
+	background-color: #EEFFEE;
+}
+.response-fail {
+	border-color: #900;
+	background-color: #FFEEEE;
+}
