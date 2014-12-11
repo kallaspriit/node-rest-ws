@@ -10,32 +10,13 @@ Example
 	'use strict';
 
 	var Server = require('rest-ws').Server,
-		DatabaseInterface = require('./src/DatabaseInterface'),
-		config;
-
-	try {
-		config = require('./config/config');
-	} catch (e) {
-		console.warn(
-			'loading server config from "config/config.js" failed, you should create it ' +
-			'based on the example "config/_config.js" file'
-		);
-
-		config = require('./config/_config');
-	}
-
-	var server = new Server(config),
-		databaseInterface = new DatabaseInterface(),
+		config = require('./config/config'),
+		server = new Server(config),
 		apis = server.findApisInDirectory('api', '*-api.js'),
-		interfaces = {
-			database: databaseInterface
-		},
 		i;
-
-	databaseInterface.init(config.database);
-
+	
 	for (i = 0; i < apis.length; i++) {
-		server.addApi(apis[i].name, new apis[i].constructor(interfaces));
+		server.addApi(apis[i].name, new apis[i].constructor());
 	}
 
 	server.start();
