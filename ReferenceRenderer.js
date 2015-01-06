@@ -170,7 +170,8 @@
 			var ref = handler.method + '-' + handler.name + '-' + argumentName,
 				label = argumentName,
 				description = argumentName,
-				parameterInfo = null;
+				parameterInfo = null,
+				parameterType = 'string';
 
 			if (handlerDocs !== null) {
 				parameterInfo = this._extractParameterInfo(handlerDocs, argumentName);
@@ -179,14 +180,25 @@
 			if (parameterInfo !== null) {
 				label = '<span class="parameter-type parameter-type-' + parameterInfo.type + '">' + parameterInfo.type + '</span> ' + argumentName;
 				description = parameterInfo.description;
+				parameterType = parameterInfo.type;
 			}
 
 			html +=
 				'<div class="form-group">\
 					<label for="' + ref + '" class="col-sm-2 control-label">' + label + '</label>\
-					<div class="col-sm-10">\
-					  <input type="text" name="' + argumentName + '" class="form-control" id="' + ref + '" placeholder="' + description + '">\
-					</div>\
+					<div class="col-sm-10">';
+
+			switch (parameterType) {
+				case 'boolean':
+					html += '<div class="checkbox"><label><input type="checkbox" name="' + argumentName + '" value="true" id="' + ref + '" placeholder="' + description + '"></label></div>';
+				break;
+
+				default:
+					html += '<input type="text" name="' + argumentName + '" class="form-control" id="' + ref + '" placeholder="' + description + '">';
+				break;
+			}
+
+			html += '</div>\
 				  </div>';
 		}.bind(this));
 

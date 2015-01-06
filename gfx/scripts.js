@@ -77,11 +77,20 @@
 				var $input = $(this),
 					type = $input.attr('type'),
 					name = $input.attr('name'),
-					value = $input.val(),
+					value,
 					regexp;
 
-				if (type !== 'text') {
-					return;
+				switch (type) {
+					case 'text':
+						value = $input.val();
+					break;
+
+					case 'checkbox':
+						value = $input.is(':checked') ? true : false;
+					break;
+
+					default:
+						return;
 				}
 
 				regexp = new RegExp('\/:' + name, 'g');
