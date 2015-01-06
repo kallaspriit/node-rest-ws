@@ -195,6 +195,10 @@
 				.fail(function(reason) {
 					var errorMessage;
 
+					if (requestTimeout !== null) {
+						clearTimeout(requestTimeout);
+					}
+
 					if (reason instanceof Error) {
 						res.send(new restify.InternalError(reason.message));
 					} else if (reason instanceof restify.RestError) {
