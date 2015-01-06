@@ -154,7 +154,7 @@
 				'<div class="col-lg-12">' +
 				'<a class="namespace-anchor" name="' + handler.namespace + '/' + handler.method + '-' + handler.name + '"></a>';
 
-		if (handlerDocs !== null && handlerDocs.returns.description.length > 0) {
+		if (handlerDocs !== null && typeof handlerDocs.returns === 'object' && handlerDocs.returns !== null && handlerDocs.returns.description.length > 0) {
 			handlerTitle += '<span class="handler-returns"> → <span class="parameter-type parameter-type-' + handlerDocs.returns.type + '">' + handlerDocs.returns.type + '</span> ' + handlerDocs.returns.description + '</span>';
 		}
 
