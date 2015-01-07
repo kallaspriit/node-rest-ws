@@ -1,13 +1,14 @@
 (function(context) {
 	'use strict';
 
-	var fs = require('fs');
+	var util = require('./Util'),
+		fs = require('fs');
 
-	function IndexRenderer() {
+	function ReferenceRenderer() {
 
 	}
 
-	IndexRenderer.prototype.render = function(restConfig, websocketConfig, apis, namespaces, handlers, documentation) {
+	ReferenceRenderer.prototype.render = function(restConfig, websocketConfig, apis, namespaces, handlers, documentation) {
 		var html = '<html>' +
 			'<head>' +
 			'<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">' +
@@ -36,7 +37,7 @@
 		return html;
 	};
 
-	IndexRenderer.prototype._renderHeader = function(namespaces) {
+	ReferenceRenderer.prototype._renderHeader = function(namespaces) {
 		namespaces.sort();
 
 		var html =
@@ -73,7 +74,7 @@
 		return html;
 	};
 
-	IndexRenderer.prototype._renderWebsocketLog = function() {
+	ReferenceRenderer.prototype._renderWebsocketLog = function() {
 		return '<div id="websocket-log-wrap" class="row hidden">' +
 			'<div class="col col-lg-12">' +
 			'<div id="websocket-log" class="websocket-log"></div>' +
@@ -81,7 +82,7 @@
 			'</div>';
 	};
 
-	IndexRenderer.prototype._renderApis = function(namespaces, handlers, documentation) {
+	ReferenceRenderer.prototype._renderApis = function(namespaces, handlers, documentation) {
 		var html = '';
 
 		namespaces.forEach(function(namespace) {
@@ -111,7 +112,7 @@
 		return html;
 	};
 
-	IndexRenderer.prototype._renderNamespaceHeader = function(namespace, handlers, namespaceDocs) {
+	ReferenceRenderer.prototype._renderNamespaceHeader = function(namespace, handlers, namespaceDocs) {
 		var html = '<div class="row">' +
 			'<div class="col-lg-12">' +
 			'<h2>' + namespace.substr(0, 1).toUpperCase() + namespace.substr(1) + ' api</h2>';
@@ -137,7 +138,7 @@
 		return html;
 	};
 
-	IndexRenderer.prototype._renderHandler = function(handler, handlerDocs) {
+	ReferenceRenderer.prototype._renderHandler = function(handler, handlerDocs) {
 		var url;
 
 		if (handler.method === 'get') {
@@ -220,7 +221,7 @@
 		return html;
 	};
 
-	IndexRenderer.prototype._extractNamespaceDocs = function(documentation, namespace) {
+	ReferenceRenderer.prototype._extractNamespaceDocs = function(documentation, namespace) {
 		var namespaceDocs = null;
 
 		documentation.classes.forEach(function(docClass) {
@@ -232,9 +233,9 @@
 		return namespaceDocs;
 	};
 
-	IndexRenderer.prototype._extractHandlerDocs = function(namespaceDocs, namespace, handler) {
+	ReferenceRenderer.prototype._extractHandlerDocs = function(namespaceDocs, namespace, handler) {
 		var handlerDocs = null,
-			fnName = this._convertCallableName(
+			fnName = util.convertCallableName(
 					handler.method + '-' + handler.name
 				);
 
@@ -247,7 +248,7 @@
 		return handlerDocs;
 	};
 
-	IndexRenderer.prototype._extractParameterInfo = function(handlerDocs, parameterName) {
+	ReferenceRenderer.prototype._extractParameterInfo = function(handlerDocs, parameterName) {
 		var parameterInfo = null;
 
 		handlerDocs.parameters.forEach(function(param) {
@@ -259,7 +260,7 @@
 		return parameterInfo;
 	};
 
-	IndexRenderer.prototype._getScript = function(filename) {
+	ReferenceRenderer.prototype._getScript = function(filename) {
 		var contents = fs.readFileSync(__dirname + '/' + filename, 'utf-8'),
 			result = '<script>\n' +
 				contents + '\n' +
@@ -268,7 +269,7 @@
 		return result;
 	};
 
-	IndexRenderer.prototype._getCss = function(filename) {
+	ReferenceRenderer.prototype._getCss = function(filename) {
 		var contents = fs.readFileSync(__dirname + '/' + filename, 'utf-8'),
 			result = '<style>\n' +
 				contents + '\n' +
@@ -277,17 +278,7 @@
 		return result;
 	};
 
-	IndexRenderer.prototype._convertCallableName = function(name) {
-		var dashPos;
-
-		while ((dashPos = name.indexOf('-')) != -1) {
-			name = name.substr(0, dashPos) + (name.substr(dashPos + 1, 1)).toUpperCase() + name.substr(dashPos + 2);
-		}
-
-		return name;
-	};
-
-	IndexRenderer.prototype._convertEntityName = function(name) {
+	ReferenceRenderer.prototype._convertEntityName = function(name) {
 		var dashPos;
 
 		while ((dashPos = name.indexOf('-')) != -1) {
@@ -297,5 +288,5 @@
 		return name.substr(0, 1).toUpperCase() + name.substr(1);
 	};
 
-	context.exports = IndexRenderer;
+	context.exports = ReferenceRenderer;
 })(module);

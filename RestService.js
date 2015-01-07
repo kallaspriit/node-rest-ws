@@ -8,6 +8,9 @@
 		Deferred = Q.defer,
 		AbstractService = require('./AbstractService'),
 		ReferenceRenderer = require('./ReferenceRenderer'),
+		ApiRenderer = require('./ApiRenderer'),
+		JsonRenderer = require('./JsonRenderer'),
+		ApiDoc = require('./ApiDoc'),
 		when = Q.when,
 		log = require('logviking').logger.get('RestService');
 
@@ -26,7 +29,10 @@
 		this._namespaces = [];
 		this._apis = {};
 
+		this._apiDoc = new ApiDoc('gen/doc.json');
 		this._referenceRenderer = new ReferenceRenderer();
+		this._apiRenderer = new ApiRenderer();
+		this._jsonRenderer = new JsonRenderer();
 	}
 
 	RestService.prototype = Object.create(AbstractService.prototype);
@@ -57,6 +63,9 @@
 
 		this._augmentApis();
 		this._addApiReferenceHandler();
+		this._addRestApiGeneratorHandler();
+		this._addWebsocketApiGeneratorHandler();
+		this._addJsonGeneratorHandler();
 
 		log.info('starting service server at ' + host + ':' + this._restConfig.port);
 
@@ -142,7 +151,7 @@
 				if (e instanceof restify.RestError) {
 					result = e;
 				} else {
-					result = new restify.InternalError(e.message);
+					result = new restify.InternalError(e.message + ' - ' + this._getErrorLocation(e));
 				}
 			}
 
@@ -214,9 +223,21 @@
 		}.bind(this));
 	};
 
+	RestService.prototype._getErrorLocation = function (e) {
+		var rows = e.stack.split('\n').slice(1);
+
+		return rows.join(' > ').replace(/    /g, '');
+
+		/*var callerLine = e.stack.split('\n')[3],
+			index = callerLine.indexOf('at ');
+
+		return callerLine.slice(index + 3, callerLine.length);*/
+	};
+
 	RestService.prototype._addApiReferenceHandler = function() {
 		this.addHandler('', '', 'get', [], function(req, res, next) {
 			var html = this._getApiReferenceHtml();
+
 			res.setHeader('Content-Type', 'text/html');
        		res.writeHead(200);
 			res.end(html);
@@ -227,10 +248,50 @@
 		}, this);
 	};
 
+	RestService.prototype._addRestApiGeneratorHandler = function() {
+		this.addHandler('', 'rest', 'get', [], function(req, res, next) {
+			var script = this._getRestApiScript();
+
+			res.setHeader('Content-Type', 'application/javascript');
+       		res.writeHead(200);
+			res.end(script);
+
+			next();
+
+			return true;
+		}, this);
+	};
+
+	RestService.prototype._addWebsocketApiGeneratorHandler = function() {
+		this.addHandler('', 'ws', 'get', [], function(req, res, next) {
+			var script = this._getWebsocketApiScript();
+
+			res.setHeader('Content-Type', 'application/javascript');
+       		res.writeHead(200);
+			res.end(script);
+
+			next();
+
+			return true;
+		}, this);
+	};
+
+	RestService.prototype._addJsonGeneratorHandler = function() {
+		this.addHandler('', 'json', 'get', [], function(req, res, next) {
+			var json = this._getInfoJson();
+
+			res.setHeader('Content-Type', 'application/json');
+       		res.writeHead(200);
+			res.end(json);
+
+			next();
+
+			return true;
+		}, this);
+	};
+
 	RestService.prototype._getApiReferenceHtml = function() {
-		var documentation = JSON.parse(fs.readFileSync('gen/doc.json', {
-			encoding: 'utf-8'
-		}));
+		var documentation = this._getDocumentation();
 
 		return this._referenceRenderer.render(
 			this._restConfig,
@@ -240,6 +301,49 @@
 			this._handlers,
 			documentation
 		);
+	};
+
+	RestService.prototype._getRestApiScript = function() {
+		return this._apiRenderer.render(
+			this._restConfig,
+			this._websocketConfig,
+			this._apis,
+			this._namespaces,
+			this._handlers,
+			this._apiDoc,
+			'http'
+		);
+	};
+
+	RestService.prototype._getWebsocketApiScript = function() {
+		return this._apiRenderer.render(
+			this._restConfig,
+			this._websocketConfig,
+			this._apis,
+			this._namespaces,
+			this._handlers,
+			this._apiDoc,
+			'websocket'
+		);
+	};
+
+	RestService.prototype._getInfoJson = function() {
+		var documentation = this._getDocumentation();
+
+		return this._jsonRenderer.render(
+			this._restConfig,
+			this._websocketConfig,
+			this._apis,
+			this._namespaces,
+			this._handlers,
+			documentation
+		);
+	};
+
+	RestService.prototype._getDocumentation = function() {
+		return JSON.parse(fs.readFileSync('gen/doc.json', {
+			encoding: 'utf-8'
+		}));
 	};
 
 	context.exports = RestService;

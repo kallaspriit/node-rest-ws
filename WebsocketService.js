@@ -41,12 +41,14 @@
 	WebsocketService.SuccessResult = function(id, result) {
 		this.id = id;
 		this.result = result;
+		this.jsonrpc = '2.0';
 	};
 
 	WebsocketService.ErrorResult = function(id, code, message) {
 		this.id = id;
 		this.code = code;
 		this.message = message;
+		this.jsonrpc = '2.0';
 	};
 
 	WebsocketService.prototype.init = function(config) {
