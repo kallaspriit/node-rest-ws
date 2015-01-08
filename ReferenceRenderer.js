@@ -24,9 +24,10 @@
 
 		html += '</head>' +
 			'<body data-ws-host="' + websocketConfig.host + '" data-ws-port="' + websocketConfig.port + '">' +
-			'<div class="container">';
+			'<div class="container top-wrap">';
 
 		html += this._renderHeader(namespaces);
+		html += this._renderApiLinks();
 		html += this._renderWebsocketLog();
 		html += this._renderApis(namespaces, handlers, documentation);
 
@@ -72,6 +73,14 @@
 			</nav>';
 
 		return html;
+	};
+
+	ReferenceRenderer.prototype._renderApiLinks = function() {
+		return '<div class="api-links">\
+				<a href="/json">JSON Info</a> • \
+				<a href="/rest">REST API</a> • \
+				<a href="/ws">WebSocket API</a> \
+			</div>';
 	};
 
 	ReferenceRenderer.prototype._renderWebsocketLog = function() {

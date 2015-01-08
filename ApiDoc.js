@@ -29,6 +29,10 @@
 			functionInfo,
 			i;
 
+		if (classInfo === null || !(classInfo.functions instanceof Array)) {
+			return null;
+		}
+
 		for (i = 0; i < classInfo.functions.length; i++) {
 			functionInfo = classInfo.functions[i];
 

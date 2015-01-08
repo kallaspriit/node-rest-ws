@@ -87,13 +87,21 @@
 	ApiRenderer.prototype._renderNamespaceDoc = function(classInfo) {
 		return [
 			'/**',
-			' * ' + classInfo.constructor.description,
+			this._renderDocDescription(classInfo.constructor.description),
 			' * ',
 			this._renderDocParameters(classInfo.constructor.parameters),
 			' * @constructor',
 			' * @alias ' + classInfo.name,
 			' */',
 		];
+	};
+
+	ApiRenderer.prototype._renderDocDescription = function(description) {
+		var rows = description.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+
+		return rows.map(function(row) {
+			return [' * ' + row];
+		});
 	};
 
 	ApiRenderer.prototype._renderDocParameters = function(parameters, objectName) {
@@ -134,7 +142,7 @@
 
 		return [
 			'/**',
-			' * ' + methodInfo.description,
+			this._renderDocDescription(methodInfo.description),
 			' * ',
 			this._renderDocParameters(methodInfo.parameters, 'parameters'),
 			methodInfo.returns ? ' * @returns ' + type + methodInfo.returns.description : null,
