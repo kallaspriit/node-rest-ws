@@ -6,11 +6,13 @@
 		fs = require('fs'),
 		Q = require('q'),
 		Deferred = Q.defer,
+		CookieParser = require('restify-cookies'),
 		AbstractService = require('./AbstractService'),
 		ReferenceRenderer = require('./ReferenceRenderer'),
 		ApiRenderer = require('./ApiRenderer'),
 		JsonRenderer = require('./JsonRenderer'),
 		ApiDoc = require('./ApiDoc'),
+		Errors = require('./Errors'),
 		when = Q.when,
 		log = require('logviking').logger.get('RestService');
 
@@ -18,6 +20,7 @@
 		AbstractService.call(this);
 
 		this._server = null;
+		this._sessionManager = null;
 		this._restConfig = {
 			bindHost: '0.0.0.0',
 			publicHost: 'localhost',
@@ -38,7 +41,8 @@
 
 	RestService.prototype = Object.create(AbstractService.prototype);
 
-	RestService.prototype.init = function(restConfig, websocketConfig) {
+	RestService.prototype.init = function(sessionManager, restConfig, websocketConfig) {
+		this._sessionManager = sessionManager;
 		this._restConfig = extend(this._restConfig, restConfig || {});
 		this._websocketConfig = websocketConfig;
 
@@ -48,6 +52,7 @@
 		this._server.use(restify.bodyParser());
 		this._server.use(restify.CORS());
 		this._server.use(restify.fullResponse());
+		this._server.use(CookieParser.parse);
 
 		this._server.on('uncaughtException', function (req, res, route, err) {
 			log.error('REST server error occured', err.stack);
@@ -111,121 +116,158 @@
 		});
 
 		this._server[method](route, function(req, res, next) {
-			var callArguments = [],
-				startTime = (new Date()).getTime(),
-				timedOut = false,
-				requestTimeout = setTimeout(function() {
-					log.info('request time out');
+			return this._onHandlerCalled(namespace, name, method, argumentNames, handler, context, req, res, next);
+		}.bind(this));
+	};
 
-					res.send(new restify.InternalError('request timed out after ' + this._restConfig.requestTimeout + 'ms'));
+	RestService.prototype._onHandlerCalled = function(
+		namespace,
+		handlerName,
+		method,
+		argumentNames,
+		handler,
+		context,
+		req,
+		res,
+		next
+	) {
+		var callArguments = [],
+			timedOut = false,
+			requestTimeout = this._createRequestTimeout(function() {
+				log.warn('request timed out');
 
-					next();
+				res.send(new restify.InternalError('request timed out after ' + this._restConfig.requestTimeout + 'ms'));
 
-					requestTimeout = null;
-					timedOut = true;
-				}.bind(this), this._restConfig.requestTimeout),
-				result;
+				next();
 
-			try {
-				argumentNames.forEach(function(argumentName) {
-					if (typeof req.params[argumentName] === 'undefined') {
-						throw new restify.InvalidArgumentError('Missing argument "' + argumentName + '"');
-					}
+				requestTimeout = null;
+				timedOut = true;
+			}.bind(this)),
+			sessionId = typeof req.cookies.sessionId === 'string' ? req.cookies.sessionId : null,
+			session,
+			result;
 
-					callArguments.push(req.params[argumentName]);
-				});
+		if (sessionId !== null) {
+			session = this._sessionManager.get(sessionId);
+		}
 
-				callArguments = this._normalizeType(callArguments);
+		if (session === null) {
+			session = this._sessionManager.create();
+			sessionId = session.id;
 
-				log.info('handling', namespace, method, name, req.params);
+			res.setCookie('sessionId', sessionId);
+		}
 
-				if (
-					this._restConfig.simulateErrorRatePercentage > 0
-					&& Math.random() * 100 < this._restConfig.simulateErrorRatePercentage
-				) {
-					// fake failure
-					throw new Error('simulated error at ' + this._restConfig.simulateErrorRatePercentage + '% rate');
-				} else {
-					result = handler.apply(context || {}, callArguments.concat([req, res, next]));
+		try {
+			argumentNames.forEach(function(argumentName) {
+				if (typeof req.params[argumentName] === 'undefined') {
+					throw new restify.InvalidArgumentError('Missing argument "' + argumentName + '"');
 				}
-			} catch (e) {
-				if (e instanceof restify.RestError) {
-					result = e;
-				} else {
-					result = new restify.InternalError(e.message + ' - ' + this._getErrorLocation(e));
-				}
+
+				callArguments.push(req.params[argumentName]);
+			});
+
+			callArguments = this._normalizeType(callArguments);
+
+			if (this._isSimulatedFailure()) {
+				throw new Error('simulated error at ' + this._restConfig.simulateErrorRatePercentage + '% rate');
 			}
 
-			if (result === true) {
-				log.info('handler already handled the request, stopping');
+			result = handler.apply(context || {}, callArguments.concat([session, req, res, next]));
+		} catch (e) {
+			result = e;
+		}
 
+		if (result === true) {
+			log.info('handler already handled the request, stopping');
+
+			if (requestTimeout !== null) {
+				clearTimeout(requestTimeout);
+			}
+
+			return;
+		}
+
+		when(result)
+			.then(function(response) {
 				if (requestTimeout !== null) {
 					clearTimeout(requestTimeout);
 				}
 
-				return;
-			}
+				if (timedOut) {
+					return;
+				}
 
-			when(result)
-				.then(function(response) {
-					var timeTaken = (new Date()).getTime() - startTime;
+				this._respond(response, res, next);
+			}.bind(this))
+			.fail(function(reason) {
+				if (requestTimeout !== null) {
+					clearTimeout(requestTimeout);
+				}
 
-					if (requestTimeout !== null) {
-						clearTimeout(requestTimeout);
-					}
+				if (reason === null || typeof reason === 'undefined') {
+					reason = new Error('Unknown error occured');
+				}
 
-					if (timedOut) {
-						return;
-					}
+				if (!(reason instanceof Error)) {
+					reason = new Errors.InternalError(reason);
+				}
 
-					if (typeof response === 'undefined') {
-						response = new restify.InternalError('Service returned undefined, this should not happen (perhaps forgot to use deferred for async request?)');
-					} else if (response === null || response === false) {
-						response = new restify.ResourceNotFoundError('Not found');
-					}
+				log.warn('request failed', reason);
 
-					log.info('handled ' + req.path() + ' in ' + timeTaken + 'ms', req.params, response, typeof response);
+				this._respond(reason, res, next);
+			}.bind(this));
+	};
 
-					if (this._restConfig.simulateLatency === 0) {
-						res.send(response);
-						//res.write(response);
-						//res.end();
+	RestService.prototype._respond = function(response, res, next) {
+		var statusCode = 200,
+			payload = response;
 
-						next();
-					} else {
-						setTimeout(function() {
-							res.send(response);
-							//res.write(response);
-							//res.end();
+		log.info('respond', response, typeof response);
 
-							next();
-						}, this._restConfig.simulateLatency);
-					}
-				}.bind(this))
-				.fail(function(reason) {
-					var errorMessage;
+		if (typeof response === 'undefined' || response === null) {
+			response = new Errors.NotFound('Not found');
+		}
 
-					if (requestTimeout !== null) {
-						clearTimeout(requestTimeout);
-					}
+		if (response instanceof Error) {
+			statusCode = response.statusCode || 500;
+			payload = {
+				error: response.statusName || 'INTERNAL_ERROR',
+				message: response.message,
+				trace: this._getErrorLocation(response)
+			};
+		}
 
-					if (reason instanceof Error) {
-						res.send(new restify.InternalError(reason.message));
-					} else if (reason instanceof restify.RestError) {
-						res.send(reason);
-					} else if (typeof reason === 'string') {
-						errorMessage = typeof reason === 'string' && reason.length > 0 ? reason : 'request failed';
+		if (this._restConfig.simulateLatency === 0) {
+			res.send(statusCode, payload);
 
-						res.send(new restify.InternalError(errorMessage));
-					} else {
-						res.send(new restify.InternalError('request failed for unknown reason'));
-					}
-				});
-		}.bind(this));
+			next();
+		} else {
+			setTimeout(function() {
+				res.send(statusCode, payload);
+
+				next();
+			}, this._restConfig.simulateLatency);
+		}
+	};
+
+	RestService.prototype._createRequestTimeout = function(requestTimedOutCallback) {
+		return setTimeout(requestTimedOutCallback, this._restConfig.requestTimeout);
+	};
+
+	RestService.prototype._isSimulatedFailure = function() {
+		return this._restConfig.simulateErrorRatePercentage > 0
+			&& Math.random() * 100 < this._restConfig.simulateErrorRatePercentage;
 	};
 
 	RestService.prototype._getErrorLocation = function (e) {
-		var rows = e.stack.split('\n').slice(1);
+		if (typeof e.stack !== 'string') {
+			return 'unknown location';
+		}
+
+		//return e.stack;
+
+		var rows = e.stack.split('\n');
 
 		return rows.join(' > ').replace(/    /g, '');
 
@@ -236,7 +278,7 @@
 	};
 
 	RestService.prototype._addApiReferenceHandler = function() {
-		this.addHandler('', '', 'get', [], function(req, res, next) {
+		this.addHandler('', '', 'get', [], function(session, req, res, next) {
 			var html = this._getApiReferenceHtml();
 
 			res.setHeader('Content-Type', 'text/html');
@@ -250,7 +292,7 @@
 	};
 
 	RestService.prototype._addRestApiGeneratorHandler = function() {
-		this.addHandler('', 'rest', 'get', [], function(req, res, next) {
+		this.addHandler('', 'rest', 'get', [], function(session, req, res, next) {
 			var script = this._getRestApiScript();
 
 			res.setHeader('Content-Type', 'application/javascript');
@@ -264,7 +306,7 @@
 	};
 
 	RestService.prototype._addWebsocketApiGeneratorHandler = function() {
-		this.addHandler('', 'ws', 'get', [], function(req, res, next) {
+		this.addHandler('', 'ws', 'get', [], function(session, req, res, next) {
 			var script = this._getWebsocketApiScript();
 
 			res.setHeader('Content-Type', 'application/javascript');
@@ -278,7 +320,7 @@
 	};
 
 	RestService.prototype._addJsonGeneratorHandler = function() {
-		this.addHandler('', 'json', 'get', [], function(req, res, next) {
+		this.addHandler('', 'json', 'get', [], function(session, req, res, next) {
 			var json = this._getInfoJson();
 
 			res.setHeader('Content-Type', 'application/json');

@@ -6,6 +6,7 @@
 		AbstractService: require('./AbstractService'),
 		RestService: require('./RestService'),
 		WebsocketService: require('./WebsocketService'),
-		ReferenceRenderer: require('./ReferenceRenderer')
+		ReferenceRenderer: require('./ReferenceRenderer'),
+		Errors: require('./Errors')
 	};
 })(module);

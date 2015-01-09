@@ -8,20 +8,30 @@
 		when = Q.when,
 		RestService = require('./RestService'),
 		WebsocketService = require('./WebsocketService'),
+		SessionManager = require('./SessionManager'),
 		logviking = require('logviking'),
 		logger = logviking.logger,
 		log = logger.get('Server');
 
 	function Server(config) {
 		this._config = config;
+		this._sessionManager = new SessionManager();
 		this._restService = new RestService();
 		this._websocketService = new WebsocketService();
 
 		this._setupLogger();
 
-		this._restService.init(this._config.rest, this._config.websocket);
-		this._websocketService.init(this._config.websocket);
+		this._restService.init(this._sessionManager, this._config.rest, this._config.websocket);
+		this._websocketService.init(this._sessionManager, this._config.websocket);
 	}
+
+	Server.prototype.getSessionManager = function() {
+		return this._sessionManager;
+	};
+
+	Server.prototype.setSessionManager = function(sessionManager) {
+		this._sessionManager = sessionManager;
+	};
 
 	Server.prototype.getRestService = function() {
 		return this._restService;

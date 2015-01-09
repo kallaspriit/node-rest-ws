@@ -13,6 +13,7 @@
 	function WebsocketService() {
 		AbstractService.call(this);
 
+		this._sessionManager = null;
 		this._server = null;
 		this._config = {
 			bindHost: '0.0.0.0',
@@ -52,7 +53,9 @@
 		this.jsonrpc = '2.0';
 	};
 
-	WebsocketService.prototype.init = function(config) {
+	WebsocketService.prototype.init = function(sessionManager, config) {
+		this._sessionManager = sessionManager;
+
 		this._config = extend(this._config, config || {});
 
 		this._config.host = config.bindHost;
@@ -67,13 +70,6 @@
 		var deferred = new Deferred();
 
 		deferred.resolve();
-
-		// TODO remove test
-		/*setInterval(function() {
-			this.broadcast('test', {
-				timestamp: (new Date()).getTime()
-			});
-		}.bind(this), 1000);*/
 
 		return deferred.promise;
 	};
@@ -173,6 +169,7 @@
 		var service = this;
 
 		client.id = this._clientIdCounter++;
+		client.session = this._sessionManager.create();
 
 		this._clients.push(client);
 
@@ -480,6 +477,8 @@
 		if (foundInvalidParam) {
 			return result;
 		}
+
+		callArguments.push(client.session);
 
 		result = handlerInfo.handler.apply(handlerInfo.context || {}, callArguments);
 

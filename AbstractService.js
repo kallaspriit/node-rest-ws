@@ -8,7 +8,7 @@
 	};
 
 	AbstractService.prototype.addApi = function(namespace, api) {
-		var reservedArgumentsNames = ['req', 'res', 'next'],
+		var reservedArgumentsNames = ['sess', 'session', 'req', 'res', 'next'],
 			ignoredMethods = api.ignoredApiMethods || [],
 			argumentNames,
 			filteredArgumentNames,

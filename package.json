@@ -1,6 +1,6 @@
 {
   "name": "rest-ws",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Library for creating powerful self-documenting and testable REST + WebSocket API's.",
   "main": "index.js",
   "scripts": {
@@ -33,16 +33,18 @@
   "homepage": "https://github.com/kallaspriit/node-rest-ws",
   "dependencies": {
     "glob": "^4.3.1",
+    "http-status": "^0.1.8",
     "logviking": "^1.0.0",
     "q": "^1.1.2",
     "restify": "^2.8.3",
+    "restify-cookies": "^0.1.1",
     "ws": "^0.6.3",
     "xtend": "^4.0.0"
   },
   "readme": "node-rest-ws\r\n============\r\n\r\nLibrary for creating powerful self-documenting and testable REST + WebSocket API's.\r\n\r\nExample\r\n-------\r\n```javascript\r\n(function() {\r\n\t'use strict';\r\n\r\n\tvar Server = require('rest-ws').Server,\r\n\t\tconfig = require('./config/config'),\r\n\t\tserver = new Server(config),\r\n\t\tapis = server.findApisInDirectory('api', '*-api.js'),\r\n\t\ti;\r\n\t\r\n\tfor (i = 0; i < apis.length; i++) {\r\n\t\tserver.addApi(apis[i].name, new apis[i].constructor());\r\n\t}\r\n\r\n\tserver.start();\r\n})();\r\n```\r\n\r\nTest API\r\n--------\r\n```javascript\r\n(function(context) {\r\n\t'use strict';\r\n\r\n\tvar Deferred = require('q').defer;\r\n\r\n\tfunction TestApi() {\r\n\r\n\t}\r\n\r\n\t// following are API test requests\r\n\t// TODO create an actual automatic test suite based on these\r\n\r\n\t// 200 test-sync/1/2/3 > {\"a\":2,\"b\":4,\"c\":6}\r\n\t// 404 test-sync/1/2/3/4 > {\"code\":\"ResourceNotFound\",\"message\":\"/test-sync/1/2/3/4 does not exist\"}\r\n\tTestApi.prototype.getSync = function (a, b, c) {\r\n\t\treturn {\r\n\t\t\ta: a * 10,\r\n\t\t\tb: b * 10,\r\n\t\t\tc: c * 10,\r\n\t\t};\r\n\t};\r\n\r\n\tTestApi.prototype.postSync = function (a, b, c) {\r\n\t\treturn {\r\n\t\t\ta: a * 2,\r\n\t\t\tb: b * 2,\r\n\t\t\tc: c * 2,\r\n\t\t};\r\n\t};\r\n\r\n\t// 200 test-async/1/2/3 > {\"a\":2,\"b\":4,\"c\":6}\r\n\t// 404 test-async/1/2/3/4 > {\"code\":\"ResourceNotFound\",\"message\":\"/test-sync/1/2/3/4 does not exist\"}\r\n\tTestApi.prototype.getAsync = function (a, b, c) {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\tsetTimeout(function () {\r\n\t\t\tdeferred.resolve({\r\n\t\t\t\ta: a * 2,\r\n\t\t\t\tb: b * 2,\r\n\t\t\t\tc: c * 2,\r\n\t\t\t});\r\n\t\t}, 1000);\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\t// 500 test-async-fail-message > {\"code\":\"InternalError\",\"message\":\"request failed (meh)\"}\r\n\tTestApi.prototype.getAsyncFailMessage = function () {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\tsetTimeout(function () {\r\n\t\t\tdeferred.reject('reject error message');\r\n\t\t}, 1000);\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\t// 500 test-async-fail-error > {\"code\":\"InvalidArgument\",\"message\":\"missing \\\"foobar\\\" argument\"}\r\n\tTestApi.prototype.getAsyncFailError = function () {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\tsetTimeout(function () {\r\n\t\t\tdeferred.reject(new Error('missing \"foobar\" argument'));\r\n\t\t}, 1000);\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\t// 500 test-async-fail-undefined > {\"code\":\"InternalError\",\"message\":\"request failed for unknown reason\"}\r\n\tTestApi.prototype.getAsyncFailUndefined = function () {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\tsetTimeout(function () {\r\n\t\t\tdeferred.reject();\r\n\t\t}, 1000);\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\t// 500 test-sync-undefined > {\"code\":\"InternalError\",\"message\":\"service returned undefined, this should not happen (perhaps forgot to use deferred for async request?)\"}\r\n\tTestApi.prototype.getSyncUndefined = function () {\r\n\t\t// don't return anything\r\n\t};\r\n\r\n\t// 500 test-async-undefined > {\"code\":\"InternalError\",\"message\":\"service returned undefined, this should not happen (perhaps forgot to use deferred for async request?)\"}\r\n\tTestApi.prototype.getAsyncUndefined = function () {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\tsetTimeout(function () {\r\n\t\t\tdeferred.resolve();\r\n\t\t}, 1000);\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\t// 500 test-async-unresolved >\r\n\tTestApi.prototype.getAsyncUnresolved = function () {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\t// never resolved\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\t// 404 test-null > {\"code\":\"ResourceNotFound\",\"message\":\"Not found\"}\r\n\tTestApi.prototype.getNull = function () {\r\n\t\treturn null;\r\n\t};\r\n\r\n\t// 404 test-false > {\"code\":\"ResourceNotFound\",\"message\":\"Not found\"}\r\n\tTestApi.prototype.getFalse = function () {\r\n\t\treturn false;\r\n\t};\r\n\r\n\t// 200 test-string > \"hello world\"\r\n\tTestApi.prototype.getString = function () {\r\n\t\treturn 'hello world';\r\n\t};\r\n\r\n\t// 500 test-error > {\"code\":\"InternalError\",\"message\":\"request failed: foobar is not defined\"}\r\n\tTestApi.prototype.getError = function () {\r\n\t\tfoobar(); // jshint ignore:line\r\n\t};\r\n\r\n\t// 500 test-exception > {\"code\":\"InternalError\",\"message\":\"request faile: Something went wrong\"}\r\n\tTestApi.prototype.getException = function () {\r\n\t\tthrow new Error('Something went wrong');\r\n\t};\r\n\r\n\t// 500 test-async-undefined > {\"code\":\"InternalError\",\"message\":\"request timed out after 10000ms\"}\r\n\tTestApi.prototype.getAsyncException = function () {\r\n\t\tvar deferred = new Deferred();\r\n\r\n\t\tsetTimeout(function () {\r\n\t\t\tthrow new Error('Something went wrong');\r\n\t\t}, 1000);\r\n\r\n\t\treturn deferred.promise;\r\n\t};\r\n\r\n\tcontext.exports = TestApi;\r\n})(module)\r\n```",
   "readmeFilename": "README.md",
   "gitHead": "7c3f8d4f197b072cb01c0ba3ccce27f0f0071374",
-  "_id": "rest-ws@1.5.0",
-  "_shasum": "d5ca387d1d506b71faa645bd04dde61041d011d0",
-  "_from": "rest-ws@^1.5.0"
+  "_id": "rest-ws@1.6.0",
+  "_shasum": "f44e72188b56c83bbac2a085f19f89c027b50629",
+  "_from": "rest-ws@^1.6.0"
 }
