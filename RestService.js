@@ -144,7 +144,7 @@
 				timedOut = true;
 			}.bind(this)),
 			sessionId = typeof req.cookies.sessionId === 'string' ? req.cookies.sessionId : null,
-			session,
+			session = null,
 			result;
 
 		if (sessionId !== null) {
