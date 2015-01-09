@@ -15,7 +15,8 @@
 
 		this._server = null;
 		this._config = {
-			host: 'localhost',
+			bindHost: '0.0.0.0',
+			publicHost: 'localhost',
 			port: 8080,
 			requestTimeout: 10000,
 			protocolVersion: 13
@@ -53,6 +54,8 @@
 
 	WebsocketService.prototype.init = function(config) {
 		this._config = extend(this._config, config || {});
+
+		this._config.host = config.bindHost;
 
 		log.info('initiating', this._config);
 

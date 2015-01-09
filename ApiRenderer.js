@@ -187,8 +187,8 @@
 				throw new Error('Transport type "' + this._transportType + '" not implemented');
 		}
 
-		if (config.host !== '0.0.0.0') {
-			host = config.host;
+		if (config.publicHost !== '0.0.0.0') {
+			host = config.publicHost;
 		} else {
 			host = 'localhost';
 		}

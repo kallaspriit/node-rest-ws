@@ -19,7 +19,8 @@
 
 		this._server = null;
 		this._restConfig = {
-			host: 'localhost',
+			bindHost: '0.0.0.0',
+			publicHost: 'localhost',
 			port: 8080,
 			requestTimeout: 10000,
 			simulateLatency: 0,
@@ -54,7 +55,7 @@
 	};
 
 	RestService.prototype.start = function() {
-		var host = this._restConfig.host,
+		var host = this._restConfig.bindHost,
 			deferred = new Deferred();
 
 		if (host === null) {

@@ -23,7 +23,7 @@
 		html += this._getScript('gfx/scripts.js');
 
 		html += '</head>' +
-			'<body data-ws-host="' + websocketConfig.host + '" data-ws-port="' + websocketConfig.port + '">' +
+			'<body data-ws-host="' + websocketConfig.publicHost + '" data-ws-port="' + websocketConfig.port + '">' +
 			'<div class="container top-wrap">';
 
 		html += this._renderHeader(namespaces);
