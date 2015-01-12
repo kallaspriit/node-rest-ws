@@ -7,6 +7,7 @@
 		RestService: require('./RestService'),
 		WebsocketService: require('./WebsocketService'),
 		ReferenceRenderer: require('./ReferenceRenderer'),
-		Errors: require('./Errors')
+		Errors: require('./Errors'),
+		expect: require('./Expect')
 	};
 })(module);

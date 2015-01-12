@@ -27,12 +27,26 @@
 	};
 
 	var Errors = util.keyMirror({
+		INVALID_PARAMETER: null,
 		INTERNAL_ERROR: null,
 		NOT_FOUND: null
 	});
 
-	Errors.InternalError = createError(Errors.INTERNAL_ERROR, Status.INTERNAL_SERVER_ERROR);
-	Errors.NotFound = createError(Errors.NOT_FOUND, Status.NOT_FOUND);
+	Errors.InvalidParameter = createError(
+		Errors.INVALID_PARAMETER,
+		Status.BAD_REQUEST,
+		'Invalid parameter provided'
+	);
+	Errors.InternalError = createError(
+		Errors.INTERNAL_ERROR,
+		Status.INTERNAL_SERVER_ERROR,
+		'Internal error occured'
+	);
+	Errors.NotFound = createError(
+		Errors.NOT_FOUND,
+		Status.NOT_FOUND,
+		'Not found'
+	);
 
 	Errors.Status = Status;
 	Errors.createError = createError;
