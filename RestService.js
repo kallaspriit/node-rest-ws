@@ -155,7 +155,9 @@
 			session = this._sessionManager.create();
 			sessionId = session.id;
 
-			res.setCookie('sessionId', sessionId);
+			res.setCookie('sessionId', sessionId, {
+				path: '/'
+			});
 		}
 
 		try {
