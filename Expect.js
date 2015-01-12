@@ -47,6 +47,21 @@
 				return getValidators(value, name);
 			},
 
+			toContain: function (ref) {
+				if (!util.isArray(value) && !util.isObject(value)) {
+					throw new Error(
+						'Expected "' + value + '" (' + util.typeOf(value) +
+						') to be a collection and contain "' + ref + '"'
+					);
+				}
+
+				if (util.isArray(value) && value.indexOf(ref) === -1) {
+					throw new Error('Expected "' + JSON.stringify(value) + '" to contain "' + ref + '"');
+				} else if (util.isObject(value) && !_.contains(_.values(value), ref)) {
+					throw new Error('Expected "' + JSON.stringify(value) + '" to contain "' + ref + '"');
+				}
+			},
+
 			haveMinimumLength: function(minLength) {
 				if (typeof value === 'string' && value.length < minLength) {
 					throw new Errors.InvalidParameter(
@@ -66,6 +81,8 @@
 			string: requireType(value, name, ['string', 'number']),
 			number: requireType(value, name, ['number']),
 			boolean: requireType(value, name, ['boolean']),
+			object: requireType(value, name, ['object']),
+			array: requireType(value, name, ['array']),
 		};
 
 		result.toBe = result;

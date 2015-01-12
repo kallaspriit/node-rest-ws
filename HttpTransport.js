@@ -22,7 +22,10 @@ HttpTransport.prototype.request = function(namespace, service, method, route, pa
 	var result = $.ajax({
 		url: url,
 		type: method,
-		data: method === 'post' ? parameters : null
+		data: method === 'post' ? parameters : null,
+		xhrFields: {
+			withCredentials: true
+		}
 	});
 
 	// TODO keep this?

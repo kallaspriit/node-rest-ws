@@ -50,7 +50,9 @@
 
 		this._server = restify.createServer();
 		this._server.use(restify.bodyParser());
-		this._server.use(restify.CORS());
+		this._server.use(restify.CORS({
+			credentials: true
+		}));
 		this._server.use(restify.fullResponse());
 		this._server.use(CookieParser.parse);
 
