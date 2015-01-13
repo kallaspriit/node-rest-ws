@@ -2,9 +2,11 @@
 	'use strict';
 
 	var util = require('./Util'),
-		fs = require('fs');
+		Renderer = require('./Renderer');
 
 	function ApiRenderer() {
+		Renderer.call(this);
+
 		this._restConfig = null;
 		this._websocketConfig = null;
 		this._apis = null;
@@ -13,6 +15,8 @@
 		this._apiDoc = null;
 		this._transportType = null;
 	}
+
+	ApiRenderer.prototype = Object.create(Renderer.prototype);
 
 	ApiRenderer.prototype.render = function(
 		restConfig,
@@ -76,7 +80,7 @@
 
 			return [
 				classInfo !== null ? this._renderNamespaceDoc(classInfo) : null,
-				'Api.prototype.' + namespace + ' = {',
+				'Api.prototype.' + util.convertCallableName(namespace) + ' = {',
 				this._pad(this._renderNamespaceHandlers(namespace), 1),
 				'};',
 				''
@@ -203,57 +207,6 @@
 
 	ApiRenderer.prototype._renderFooter = function() {
 		return ['})(window);'];
-	};
-
-	ApiRenderer.prototype._stringify = function(rows, paddingCount) {
-		paddingCount = paddingCount || 0;
-
-		if (!(rows instanceof Array)) {
-			throw new Error('Expected an array for _stringify but got a ' + (typeof rows));
-		}
-
-		var output = '',
-			padding = new Array(paddingCount + 1).join('\t');
-
-		rows.forEach(function(row, index) {
-			if (row === null) {
-				return;
-			}
-
-			if (row instanceof Array) {
-				row = this._stringify(row, paddingCount);
-			}
-
-			output += padding + row;
-
-			if (index < rows.length - 1) {
-				output += '\n';
-			}
-		}.bind(this));
-
-		return output;
-	};
-
-	ApiRenderer.prototype._pad = function(rows, paddingCount) {
-		var padding = new Array(paddingCount + 1).join('\t');
-
-		rows.forEach(function(row, index) {
-			if (row === null) {
-				return;
-			}
-
-			if (row instanceof Array) {
-				rows[index] = this._pad(row, paddingCount);
-			} else {
-				rows[index] = padding + row;
-			}
-		}.bind(this));
-
-		return rows;
-	};
-
-	ApiRenderer.prototype._readFile = function(filename) {
-		return fs.readFileSync(__dirname + '/' + filename, 'utf-8');
 	};
 
 	context.exports = ApiRenderer;

@@ -1,6 +1,6 @@
 {
   "name": "rest-ws",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Library for creating powerful self-documenting and testable REST + WebSocket API's.",
   "main": "index.js",
   "scripts": {

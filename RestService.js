@@ -10,6 +10,7 @@
 		AbstractService = require('./AbstractService'),
 		ReferenceRenderer = require('./ReferenceRenderer'),
 		ApiRenderer = require('./ApiRenderer'),
+		TesterRenderer = require('./TesterRenderer'),
 		JsonRenderer = require('./JsonRenderer'),
 		ApiDoc = require('./ApiDoc'),
 		Errors = require('./Errors'),
@@ -32,10 +33,12 @@
 		this._handlers = [];
 		this._namespaces = [];
 		this._apis = {};
+		this._specs = [];
 
 		this._apiDoc = new ApiDoc('gen/doc.json');
 		this._referenceRenderer = new ReferenceRenderer();
 		this._apiRenderer = new ApiRenderer();
+		this._testerRenderer = new TesterRenderer();
 		this._jsonRenderer = new JsonRenderer();
 	}
 
@@ -71,6 +74,7 @@
 
 		this._augmentApis();
 		this._addApiReferenceHandler();
+		this._addApiTesterHandler();
 		this._addRestApiGeneratorHandler();
 		this._addWebsocketApiGeneratorHandler();
 		this._addJsonGeneratorHandler();
@@ -120,6 +124,10 @@
 		this._server[method](route, function(req, res, next) {
 			return this._onHandlerCalled(namespace, name, method, argumentNames, handler, context, req, res, next);
 		}.bind(this));
+	};
+
+	RestService.prototype.setSpecs = function(specs) {
+		this._specs = specs;
 	};
 
 	RestService.prototype._onHandlerCalled = function(
@@ -295,6 +303,20 @@
 		}, this);
 	};
 
+	RestService.prototype._addApiTesterHandler = function() {
+		this.addHandler('', 'test', 'get', [], function(session, req, res, next) {
+			var html = this._getApiTesterHtml();
+
+			res.setHeader('Content-Type', 'text/html');
+       		res.writeHead(200);
+			res.end(html);
+
+			next();
+
+			return true;
+		}, this);
+	};
+
 	RestService.prototype._addRestApiGeneratorHandler = function() {
 		this.addHandler('', 'rest', 'get', [], function(session, req, res, next) {
 			var script = this._getRestApiScript();
@@ -347,6 +369,13 @@
 			this._namespaces,
 			this._handlers,
 			documentation
+		);
+	};
+
+	RestService.prototype._getApiTesterHtml = function() {
+		return this._testerRenderer.render(
+			this._restConfig,
+			this._specs
 		);
 	};
 

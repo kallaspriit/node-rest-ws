@@ -2,11 +2,13 @@
 	'use strict';
 
 	var util = require('./Util'),
-		fs = require('fs');
+		Renderer = require('./Renderer');
 
 	function ReferenceRenderer() {
-
+		Renderer.call(this);
 	}
+
+	ReferenceRenderer.prototype = Object.create(Renderer.prototype);
 
 	ReferenceRenderer.prototype.render = function(restConfig, websocketConfig, apis, namespaces, handlers, documentation) {
 		var html = '<html>' +
@@ -77,9 +79,10 @@
 
 	ReferenceRenderer.prototype._renderApiLinks = function() {
 		return '<div class="api-links">\
-				<a href="/json">JSON Info</a> • \
 				<a href="/rest">REST API</a> • \
-				<a href="/ws">WebSocket API</a> \
+				<a href="/ws">WebSocket API</a> • \
+				<a href="/json">JSON Info</a> • \
+				<a href="/test">Tests</a> \
 			</div>';
 	};
 
@@ -267,34 +270,6 @@
 		});
 
 		return parameterInfo;
-	};
-
-	ReferenceRenderer.prototype._getScript = function(filename) {
-		var contents = fs.readFileSync(__dirname + '/' + filename, 'utf-8'),
-			result = '<script>\n' +
-				contents + '\n' +
-				'</script>\n';
-
-		return result;
-	};
-
-	ReferenceRenderer.prototype._getCss = function(filename) {
-		var contents = fs.readFileSync(__dirname + '/' + filename, 'utf-8'),
-			result = '<style>\n' +
-				contents + '\n' +
-				'</style>\n';
-
-		return result;
-	};
-
-	ReferenceRenderer.prototype._convertEntityName = function(name) {
-		var dashPos;
-
-		while ((dashPos = name.indexOf('-')) != -1) {
-			name = name.substr(0, dashPos) + (name.substr(dashPos + 1, 1)).toUpperCase() + name.substr(dashPos + 2);
-		}
-
-		return name.substr(0, 1).toUpperCase() + name.substr(1);
 	};
 
 	context.exports = ReferenceRenderer;

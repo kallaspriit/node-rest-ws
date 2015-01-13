@@ -41,6 +41,10 @@
 		return this._websocketService;
 	};
 
+	Server.prototype.setSpecs = function(specs) {
+		this._restService.setSpecs(specs);
+	};
+
 	Server.prototype.start = function() {
 		var deferred = new Deferred();
 
@@ -86,6 +90,22 @@
 		});
 
 		return apis;
+	};
+
+	Server.prototype.findSpecsInDirectory = function(directory, globPattern) {
+		directory = directory || 'test';
+		globPattern = globPattern || '*-spec.js';
+
+		var files = glob.sync(globPattern, {
+				cwd: directory
+			}),
+			specs = [];
+
+		files.forEach(function(filename) {
+			specs.push(directory + '/' + filename);
+		});
+
+		return specs;
 	};
 
 	Server.prototype._setupLogger = function() {
