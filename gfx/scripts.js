@@ -76,6 +76,7 @@
 			$inputs.each(function() {
 				var $input = $(this),
 					type = $input.attr('type'),
+					dataType = $input.data('type'),
 					name = $input.attr('name'),
 					value,
 					regexp;
@@ -91,6 +92,16 @@
 
 					default:
 						return;
+				}
+
+				if (dataType.toLowerCase().indexOf('array') !== -1) {
+					if (value.length > 0) {
+						value = value.split(',').map(function (token) {
+							return token.trim();
+						});
+					} else {
+						value = [];
+					}
 				}
 
 				regexp = new RegExp('\/:' + name, 'g');

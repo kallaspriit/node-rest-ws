@@ -207,7 +207,7 @@
 				break;
 
 				default:
-					html += '<input type="text" name="' + argumentName + '" class="form-control" id="' + ref + '" placeholder="' + description + '">';
+					html += '<input type="text" name="' + argumentName + '" class="form-control" id="' + ref + '" placeholder="' + description + '" data-type="' + parameterType + '">';
 				break;
 			}
 
