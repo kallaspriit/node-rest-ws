@@ -126,6 +126,28 @@
 		}.bind(this));
 	};
 
+	RestService.prototype.serveFiles = function(files) {
+		files.forEach(function(file) {
+			this.serveFile(file.filename, file.name, file.type);
+		}.bind(this));
+	};
+
+	RestService.prototype.serveFile = function(filename, name, type) {
+		this.addHandler('', name, 'get', [], function(session, req, res, next) {
+			var content = fs.readFileSync(filename, {
+				encoding: 'utf-8'
+			});
+
+			res.setHeader('Content-Type', type);
+       		res.writeHead(200);
+			res.end(content);
+
+			next();
+
+			return true;
+		}, this);
+	};
+
 	RestService.prototype.setSpecs = function(specs) {
 		this._specs = specs;
 	};
@@ -304,12 +326,17 @@
 	};
 
 	RestService.prototype._addApiTesterHandler = function() {
-		this.addHandler('', 'test', 'get', [], function(session, req, res, next) {
-			var html = this._getApiTesterHtml();
+		var tester = this._testerRenderer.render(
+			this._restConfig,
+			this._specs
+		);
 
+		this.serveFiles(tester.files);
+
+		this.addHandler('', 'test', 'get', [], function(session, req, res, next) {
 			res.setHeader('Content-Type', 'text/html');
        		res.writeHead(200);
-			res.end(html);
+			res.end(tester.html);
 
 			next();
 
@@ -369,13 +396,6 @@
 			this._namespaces,
 			this._handlers,
 			documentation
-		);
-	};
-
-	RestService.prototype._getApiTesterHtml = function() {
-		return this._testerRenderer.render(
-			this._restConfig,
-			this._specs
 		);
 	};
 
