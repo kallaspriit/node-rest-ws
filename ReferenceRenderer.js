@@ -79,8 +79,8 @@
 
 	ReferenceRenderer.prototype._renderApiLinks = function() {
 		return '<div class="api-links">\
-				<a href="/rest">REST API</a> • \
-				<a href="/ws">WebSocket API</a> • \
+				<a href="/rest/Api">REST API</a> • \
+				<a href="/ws/Api">WebSocket API</a> • \
 				<a href="/json">JSON Info</a> • \
 				<a href="/test">Tests</a> \
 			</div>';

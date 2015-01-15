@@ -15,6 +15,7 @@
 		ApiDoc = require('./ApiDoc'),
 		Errors = require('./Errors'),
 		when = Q.when,
+		util = require('./Util'),
 		log = require('logviking').logger.get('RestService');
 
 	function RestService() {
@@ -34,6 +35,7 @@
 		this._namespaces = [];
 		this._apis = {};
 		this._specs = [];
+		this._version = null;
 
 		this._apiDoc = new ApiDoc('gen/doc.json');
 		this._referenceRenderer = new ReferenceRenderer();
@@ -44,10 +46,11 @@
 
 	RestService.prototype = Object.create(AbstractService.prototype);
 
-	RestService.prototype.init = function(sessionManager, restConfig, websocketConfig) {
+	RestService.prototype.init = function(sessionManager, restConfig, websocketConfig, version) {
 		this._sessionManager = sessionManager;
 		this._restConfig = extend(this._restConfig, restConfig || {});
 		this._websocketConfig = websocketConfig;
+		this._version = version || '1.0.0';
 
 		log.info('initiating', this._restConfig);
 
@@ -268,7 +271,7 @@
 			payload = {
 				error: response.statusName || 'INTERNAL_ERROR',
 				message: response.message,
-				trace: this._getErrorLocation(response)
+				trace: util.getErrorStacktrace(response)
 			};
 		}
 
@@ -292,23 +295,6 @@
 	RestService.prototype._isSimulatedFailure = function() {
 		return this._restConfig.simulateErrorRatePercentage > 0
 			&& Math.random() * 100 < this._restConfig.simulateErrorRatePercentage;
-	};
-
-	RestService.prototype._getErrorLocation = function (e) {
-		if (typeof e.stack !== 'string') {
-			return 'unknown location';
-		}
-
-		//return e.stack;
-
-		var rows = e.stack.split('\n');
-
-		return rows.join(' > ').replace(/    /g, '');
-
-		/*var callerLine = e.stack.split('\n')[3],
-			index = callerLine.indexOf('at ');
-
-		return callerLine.slice(index + 3, callerLine.length);*/
 	};
 
 	RestService.prototype._addApiReferenceHandler = function() {
@@ -345,8 +331,8 @@
 	};
 
 	RestService.prototype._addRestApiGeneratorHandler = function() {
-		this.addHandler('', 'rest', 'get', [], function(session, req, res, next) {
-			var script = this._getRestApiScript();
+		this.addHandler('', 'rest', 'get', ['name'], function(name, session, req, res, next) {
+			var script = this._getRestApiScript(name);
 
 			res.setHeader('Content-Type', 'application/javascript');
        		res.writeHead(200);
@@ -359,8 +345,10 @@
 	};
 
 	RestService.prototype._addWebsocketApiGeneratorHandler = function() {
-		this.addHandler('', 'ws', 'get', [], function(session, req, res, next) {
-			var script = this._getWebsocketApiScript();
+		this.addHandler('', 'ws', 'get', ['name'], function(name, session, req, res, next) {
+			name = name || 'Api';
+
+			var script = this._getWebsocketApiScript(name);
 
 			res.setHeader('Content-Type', 'application/javascript');
        		res.writeHead(200);
@@ -399,26 +387,30 @@
 		);
 	};
 
-	RestService.prototype._getRestApiScript = function() {
+	RestService.prototype._getRestApiScript = function(name) {
 		return this._apiRenderer.render(
+			name,
 			this._restConfig,
 			this._websocketConfig,
 			this._apis,
 			this._namespaces,
 			this._handlers,
 			this._apiDoc,
+			this._version,
 			'http'
 		);
 	};
 
-	RestService.prototype._getWebsocketApiScript = function() {
+	RestService.prototype._getWebsocketApiScript = function(name) {
 		return this._apiRenderer.render(
+			name,
 			this._restConfig,
 			this._websocketConfig,
 			this._apis,
 			this._namespaces,
 			this._handlers,
 			this._apiDoc,
+			this._version,
 			'websocket'
 		);
 	};

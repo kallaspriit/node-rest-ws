@@ -8,6 +8,7 @@
 		WebSocket = require('ws'),
 		WebSocketServer = WebSocket.Server,
 		extend = require('xtend'),
+		util = require('./Util'),
 		log = require('logviking').logger.get('WebsocketService');
 
 	function WebsocketService() {
@@ -20,6 +21,7 @@
 			publicHost: 'localhost',
 			port: 8080,
 			requestTimeout: 10000,
+			simulateLatency: 0,
 			protocolVersion: 13
 		};
 		this._handlers = [];
@@ -46,10 +48,13 @@
 		this.jsonrpc = '2.0';
 	};
 
-	WebsocketService.ErrorResult = function(id, code, message) {
+	WebsocketService.ErrorResult = function(id, code, message, statusCode, statusName, trace) {
 		this.id = id;
 		this.code = code;
+		this.status = statusCode;
+		this.error = statusName;
 		this.message = message;
+		this.trace = trace;
 		this.jsonrpc = '2.0';
 	};
 
@@ -201,8 +206,6 @@
 				return null;
 			}
 
-			log.info('#' + this.client.id + ' SEND: ' + (message.length < 300 ? message : message.substr(0, 300) + '...'));
-
 			return this.originalSend.call(this.client, message);
 		}.bind({ client: client, originalSend: client.send });
 
@@ -242,8 +245,6 @@
 
 		client.respondWithError = function(requestId, code, message) {
 			var responsePayload;
-
-			log.warn(message + ' (' + code + ')');
 
 			try {
 				responsePayload = service.createErrorPayload(
@@ -383,59 +384,84 @@
 
 		when(result)
 			.then(function(response) {
+				var result;
+
 				if (requestTimeout !== null) {
 					clearTimeout(requestTimeout);
 				}
 
 				if (timedOut) {
+					log.info('request time out, ignoring success', response);
+
 					return;
 				}
 
 				if (typeof response === 'undefined') {
-					deferred.resolve(new WebsocketService.ErrorResult(
+					result = new WebsocketService.ErrorResult(
 						rpc.id,
 						WebsocketService.Error.INTERNAL_ERROR,
 						'Service returned undefined, this should not happen ' +
 						'(perhaps forgot to use deferred for async request?)'
-					));
+					);
+				} else if (response instanceof Error) {
+					result = this._buildErrorResponse(rpc.id, response);
 				} else {
 					if (response instanceof WebsocketService.ErrorResult) {
-						deferred.resolve(response);
+						result = response;
 					} else {
-						deferred.resolve(new WebsocketService.SuccessResult(rpc.id, response));
+						result = new WebsocketService.SuccessResult(rpc.id, response);
 					}
 				}
-			})
+
+				deferred.resolve(result);
+			}.bind(this))
 			.fail(function(reason) {
+				var result;
+
 				if (requestTimeout !== null) {
 					clearTimeout(requestTimeout);
 				}
 
 				if (timedOut) {
+					log.info('request time out, ignoring failure', reason);
+
 					return;
 				}
 
-				log.warn('failed', reason);
+				result = this._buildErrorResponse(rpc.id, reason);
 
-				if (reason instanceof Error) {
-					reason = reason.message;
-				}
-
-				deferred.resolve(new WebsocketService.ErrorResult(
-					rpc.id,
-					WebsocketService.Error.INTERNAL_ERROR,
-					typeof reason === 'string' && reason.length > 0 ? reason : 'request failed'
-				));
-			});
+				deferred.resolve(result);
+			}.bind(this));
 
 		return deferred.promise;
+	};
+
+	WebsocketService.prototype._buildErrorResponse = function(id, reason) {
+		if (reason instanceof Error) {
+			return new WebsocketService.ErrorResult(
+				id,
+				WebsocketService.Error.INTERNAL_ERROR,
+				reason.message,
+				reason.statusCode || 500,
+				reason.statusName || 'INTERNAL_ERROR',
+				util.getErrorStacktrace(reason)
+			);
+		} else {
+			return new WebsocketService.ErrorResult(
+				id,
+				WebsocketService.Error.INTERNAL_ERROR,
+				typeof reason === 'string' ? reason : 'request failed',
+				500,
+				'INTERNAL_ERROR',
+				null
+			);
+		}
 	};
 
 	WebsocketService.prototype._onClientRpc = function(client, rpc) {
 		var handlerInfo = this.getHandlerByMethod(rpc.method),
 			callArguments = [],
-			foundInvalidParam = false,
-			result;
+			foundInvalidParam = false;
 
 		log.info('#' + client.id + ' RECV: ' + JSON.stringify(rpc));
 
@@ -462,7 +488,7 @@
 			}
 
 			if (typeof rpc.params[argumentName] === 'undefined') {
-				result = new WebsocketService.ErrorResult(
+				return new WebsocketService.ErrorResult(
 					rpc.id,
 					WebsocketService.Error.INVALID_PARAMS,
 					'Missing argument "' + argumentName + '"'
@@ -480,9 +506,11 @@
 
 		callArguments.push(client.session);
 
-		result = handlerInfo.handler.apply(handlerInfo.context || {}, callArguments);
-
-		return result;
+		try {
+			return handlerInfo.handler.apply(handlerInfo.context || {}, callArguments);
+		} catch (e) {
+			return e;
+		}
 	};
 
 	WebsocketService.prototype._onRequestsCompleted = function(client, results) {
@@ -517,7 +545,15 @@
 			return;
 		}
 
-		client.send(payload);
+		log.info('simulating latency', this._config.simulateLatency);
+
+		if (this._config.simulateLatency === 0) {
+			client.send(payload);
+		} else {
+			setTimeout(function() {
+				client.send(payload);
+			}, this._config.simulateLatency);
+		}
 	};
 
 	context.exports = WebsocketService;

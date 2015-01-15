@@ -21,7 +21,7 @@
 
 		this._setupLogger();
 
-		this._restService.init(this._sessionManager, this._config.rest, this._config.websocket);
+		this._restService.init(this._sessionManager, this._config.rest, this._config.websocket, this._config.version);
 		this._websocketService.init(this._sessionManager, this._config.websocket);
 	}
 

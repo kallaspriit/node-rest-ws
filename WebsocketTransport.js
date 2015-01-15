@@ -10,6 +10,8 @@ var WebsocketTransport = function(host, port) {
 };
 
 WebsocketTransport.prototype.request = function(namespace, service, method, route, parameters, deferred) {
+	parameters = parameters || {};
+
 	var deferred = deferred || new $.Deferred(),
 		id = this._requestIdCounter++,
 		request = {
@@ -43,14 +45,18 @@ WebsocketTransport.prototype.request = function(namespace, service, method, rout
 	return deferred.promise();
 };
 
+// you can override these: api.transport.onError = function() { ... } etc
+WebsocketTransport.prototype.onOpen = function() {};
+WebsocketTransport.prototype.onError = function() {};
+WebsocketTransport.prototype.onClose = function() {};
+WebsocketTransport.prototype.onMessage = function(message) {};
+
 WebsocketTransport.prototype._init = function() {
 	this._ws = new WebSocket('ws://' + this._host + ':' + this._port);
 
 	this._ws.onopen = this._onOpen.bind(this);
-
-	// TODO error handling
-	//this._ws.onerror = this._onError.bind(this);
-	//this._ws.onclose = this._onClose.bind(this);
+	this._ws.onerror = this._onError.bind(this);
+	this._ws.onclose = this._onClose.bind(this);
 };
 
 WebsocketTransport.prototype._onOpen = function() {
@@ -72,6 +78,16 @@ WebsocketTransport.prototype._onOpen = function() {
 	}
 
 	this._ws.onmessage = this._onMessage.bind(this);
+
+	this.onOpen();
+};
+
+WebsocketTransport.prototype._onError = function() {
+	this.onError();
+};
+
+WebsocketTransport.prototype._onClose = function() {
+	this.onClose();
 };
 
 WebsocketTransport.prototype._onMessage = function(message) {
@@ -102,10 +118,12 @@ WebsocketTransport.prototype._onMessage = function(message) {
 	if (typeof payload.result !== 'undefined') {
 		requestDeferred.resolve(payload.result);
 	} else if (typeof payload.code !== 'undefined') {
-		requestDeferred.reject(payload.code + ' - ' + payload.message);
+		requestDeferred.reject(payload);
 	} else {
 		// TODO error handling
 	}
+
+	this.onMessage(message);
 };
 
 WebsocketTransport.prototype.getState = function() {

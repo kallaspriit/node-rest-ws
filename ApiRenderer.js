@@ -14,25 +14,30 @@
 		this._handlers = null;
 		this._apiDoc = null;
 		this._transportType = null;
+		this._version = null;
 	}
 
 	ApiRenderer.prototype = Object.create(Renderer.prototype);
 
 	ApiRenderer.prototype.render = function(
+		name,
 		restConfig,
 		websocketConfig,
 		apis,
 		namespaces,
 		handlers,
 		apiDoc,
+		version,
 		transportType
 	) {
+		this._name = name;
 		this._restConfig = restConfig;
 		this._websocketConfig = websocketConfig;
 		this._apis = apis;
 		this._namespaces = namespaces;
 		this._handlers = handlers;
 		this._apiDoc = apiDoc;
+		this._version = version || '1.0.0';
 		this._transportType = transportType;
 
 		return this._stringify([
@@ -56,7 +61,6 @@
 			this._renderPrivateMethods(),
 			this._renderPrivateVariables(),
 			this._renderClassHeader(),
-			this._renderNamespaces(),
 			this._renderClassFooter()
 		];
 	};
@@ -67,8 +71,11 @@
 
 	ApiRenderer.prototype._renderClassHeader = function() {
 		return [
-			'var Api = function() {',
-			'	// ...',
+			'var ' + this._name + ' = function() {',
+			'	this.version = \'' + this._version + '\';',
+			'	this.transport = transport;',
+			'',
+			this._pad(this._renderNamespaces(), 1),
 			'};',
 			''
 		];
@@ -80,7 +87,7 @@
 
 			return [
 				classInfo !== null ? this._renderNamespaceDoc(classInfo) : null,
-				'Api.prototype.' + util.convertCallableName(namespace) + ' = {',
+				'this.' + util.convertCallableName(namespace) + ' = {',
 				this._pad(this._renderNamespaceHandlers(namespace), 1),
 				'};',
 				''
@@ -156,7 +163,7 @@
 
 	ApiRenderer.prototype._renderClassFooter = function() {
 		return [
-			'context.Api = Api;',
+			'context.' + this._name + ' = ' + this._name + ';',
 		];
 	};
 

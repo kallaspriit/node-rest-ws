@@ -74,6 +74,16 @@
 			}
 
 			return ret;
+		},
+
+		getErrorStacktrace: function (e) {
+			if (typeof e.stack !== 'string') {
+				return 'unknown location';
+			}
+
+			var rows = e.stack.split('\n');
+
+			return rows.join(' > ').replace(/    /g, '');
 		}
 	};
 })(module);

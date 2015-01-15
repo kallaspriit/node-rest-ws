@@ -70,7 +70,7 @@
 			'<html>',
 			'<head>',
 			'<meta charset="utf-8">',
-			'<title>Server tests</title>',
+			'<title>API Tests</title>',
 		];
 	};
 
@@ -94,7 +94,7 @@
 		}
 
 		return [
-			'<script src="http://' + host + (port !== 80 ? ':' + port : '') + '/rest"></script>',
+			'<script src="http://' + host + (port !== 80 ? ':' + port : '') + '/rest/Api"></script>',
 			'<script>',
 			'window.api = new Api();',
 			'</script>',
