@@ -203,7 +203,7 @@
 
 			switch (parameterType) {
 				case 'boolean':
-					html += '<div class="checkbox"><label><input type="checkbox" name="' + argumentName + '" value="true" id="' + ref + '" placeholder="' + description + '"></label></div>';
+					html += '<div class="checkbox"><label><input type="checkbox" name="' + argumentName + '" value="true" id="' + ref + '" placeholder="' + description + '" data-type="' + parameterType + '"></label></div>';
 				break;
 
 				default:
