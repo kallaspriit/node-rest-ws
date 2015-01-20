@@ -260,7 +260,7 @@
 		var statusCode = 200,
 			payload = response;
 
-		log.info('respond', response, typeof response);
+		//log.info('respond', response, typeof response);
 
 		if (typeof response === 'undefined' || response === null) {
 			response = new Errors.NotFound('Not found');
