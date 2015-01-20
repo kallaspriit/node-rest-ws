@@ -505,6 +505,7 @@
 		}
 
 		callArguments.push(client.session);
+		callArguments.push(client);
 
 		try {
 			return handlerInfo.handler.apply(handlerInfo.context || {}, callArguments);

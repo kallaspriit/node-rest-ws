@@ -66,6 +66,8 @@
 	Server.prototype.addApi = function(name, instance) {
 		log.info('adding api "' + name + '"');
 
+		instance.sessionManager = this._sessionManager;
+
 		this._restService.addApi(name, instance);
 		this._websocketService.addApi(name, instance);
 	};
