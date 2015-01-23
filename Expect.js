@@ -5,13 +5,14 @@
 
 	var requireType = function(value, name, expectedTypes) {
 			return function() {
-				var realType = typeof value;
+				var realType = typeof value,
+					typeName = Object.prototype.toString.call(value);
 
 				if (!(expectedTypes instanceof Array)) {
 					expectedTypes = [expectedTypes];
 				}
 
-				if (expectedTypes.indexOf(realType) === -1) {
+				if (expectedTypes.indexOf(realType) === -1 && expectedTypes.indexOf(typeName) === -1) {
 					var expectedTypeNames;
 
 					if (expectedTypes.length > 1) {
@@ -82,7 +83,7 @@
 			number: requireType(value, name, ['number']),
 			boolean: requireType(value, name, ['boolean']),
 			object: requireType(value, name, ['object']),
-			array: requireType(value, name, ['array']),
+			array: requireType(value, name, ['[object Array]']),
 		};
 
 		result.toBe = result;

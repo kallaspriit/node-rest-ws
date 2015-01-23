@@ -100,7 +100,8 @@
 							return token.trim();
 						});
 					} else {
-						value = [];
+						//value = [];
+						value = null;
 					}
 				}
 

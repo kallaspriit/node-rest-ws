@@ -225,7 +225,7 @@
 		html +=
 			'</form>' +
 			//'<iframe name="test-' + handler.method + '-' + handler.namespace + '-' + handler.name + '"></iframe>' +
-			'<div class="response-title" data-name="' + ref + '">xxx</div>' +
+			'<div class="response-title" data-name="' + ref + '"></div>' +
 			'<div class="response-wrap" data-name="' + ref + '"></div>' +
 			'</div>' +
 			'</div>';
