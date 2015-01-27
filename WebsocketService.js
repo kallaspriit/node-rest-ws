@@ -461,7 +461,8 @@
 	WebsocketService.prototype._onClientRpc = function(client, rpc) {
 		var handlerInfo = this.getHandlerByMethod(rpc.method),
 			callArguments = [],
-			foundInvalidParam = false;
+			foundInvalidParam = false,
+			extra;
 
 		log.info('#' + client.id + ' RECV: ' + JSON.stringify(rpc));
 
@@ -504,8 +505,16 @@
 			return result;
 		}
 
+		extra = {
+			client: client,
+			clients: this._clients,
+			getRequestId: function() {
+				return this._requestIdCounter++;
+			}.bind(this)
+		};
+
 		callArguments.push(client.session);
-		callArguments.push(client);
+		callArguments.push(extra);
 
 		try {
 			return handlerInfo.handler.apply(handlerInfo.context || {}, callArguments);

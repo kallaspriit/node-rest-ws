@@ -20,6 +20,16 @@ BODY.request-mode-websocket .conditional.show-websocket {
 .top-wrap {
 	position: relative;
 }
+.main-menu {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+.main-menu .navbar-brand {
+	padding-left: 0;
+}
+.main-menu .navbar-toggle {
+	margin-right: 0;
+}
 
 .api-links {
 	position: absolute;

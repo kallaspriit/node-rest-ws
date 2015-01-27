@@ -44,33 +44,31 @@
 		namespaces.sort();
 
 		var html =
-			'<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
-				<div class="container">\
-					<div class="navbar-header">\
-						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">\
-							<span class="sr-only">Toggle navigation</span>\
-							<span class="icon-bar"></span>\
-							<span class="icon-bar"></span>\
-							<span class="icon-bar"></span>\
-						</button>\
-						<a class="navbar-brand" href="#">API Reference</a>\
-					</div>\
-					<div id="navbar" class="collapse navbar-collapse">\
-						<ul class="nav navbar-nav">\
-							' + namespaces.map(function(namespace, i) {
-								return '<li class="api-namespace-link' + (i === 0 ? ' active' : '') + '" data-name="' + namespace + '"><a href="#' + namespace + '">' + namespace.substr(0, 1).toUpperCase() + namespace.substr(1) + '</a></li>';
-							}).join('\n') + '\
-						</ul>\
-						<ul class="nav navbar-nav navbar-right">\
-							<li class="dropdown">\
-							  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span id="request-mode">REST</span> <span class="caret"></span></a>\
-							  <ul class="dropdown-menu" role="menu">\
-								<li><a href="#" class="change-request-mode-btn" data-id="rest" data-name="REST">REST</a></li>\
-								<li><a href="#" class="change-request-mode-btn" data-id="websocket" data-name="WebSockets JSON-RPC">WebSockets JSON-RPC</a></li>\
-							  </ul>\
-							</li>\
+			'<nav class="navbar navbar-inverse navbar-fixed-top main-menu" role="navigation">\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">\
+						<span class="sr-only">Toggle navigation</span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a class="navbar-brand" href="#">API Reference</a>\
+				</div>\
+				<div id="navbar" class="collapse navbar-collapse">\
+					<ul class="nav navbar-nav">\
+						' + namespaces.map(function(namespace, i) {
+							return '<li class="api-namespace-link' + (i === 0 ? ' active' : '') + '" data-name="' + namespace + '"><a href="#' + namespace + '">' + namespace.substr(0, 1).toUpperCase() + namespace.substr(1) + '</a></li>';
+						}).join('\n') + '\
+					</ul>\
+					<ul class="nav navbar-nav navbar-right">\
+						<li class="dropdown">\
+						  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span id="request-mode">REST</span> <span class="caret"></span></a>\
+						  <ul class="dropdown-menu" role="menu">\
+							<li><a href="#" class="change-request-mode-btn" data-id="rest" data-name="REST">REST</a></li>\
+							<li><a href="#" class="change-request-mode-btn" data-id="websocket" data-name="WebSockets JSON-RPC">WebSockets JSON-RPC</a></li>\
 						  </ul>\
-					</div>\
+						</li>\
+					  </ul>\
 				</div>\
 			</nav>';
 

@@ -94,6 +94,8 @@ WebsocketTransport.prototype._onMessage = function(message) {
 	var payload,
 		requestDeferred;
 
+	this.onMessage(message);
+
 	try {
 		payload = JSON.parse(message.data);
 	} catch (e) {
@@ -122,8 +124,6 @@ WebsocketTransport.prototype._onMessage = function(message) {
 	} else {
 		// TODO error handling
 	}
-
-	this.onMessage(message);
 };
 
 WebsocketTransport.prototype.getState = function() {

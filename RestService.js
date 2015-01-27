@@ -136,16 +136,16 @@
 	};
 
 	RestService.prototype.serveFile = function(filename, name, type) {
-		this.addHandler('', name, 'get', [], function(session, req, res, next) {
+		this.addHandler('', name, 'get', [], function(session, extra) {
 			var content = fs.readFileSync(filename, {
 				encoding: 'utf-8'
 			});
 
-			res.setHeader('Content-Type', type);
-       		res.writeHead(200);
-			res.end(content);
+			extra.res.setHeader('Content-Type', type);
+       		extra.res.writeHead(200);
+			extra.res.end(content);
 
-			next();
+			extra.next();
 
 			return true;
 		}, this);
@@ -180,6 +180,7 @@
 			}.bind(this)),
 			sessionId = typeof req.cookies.sessionId === 'string' ? req.cookies.sessionId : null,
 			session = null,
+			extra,
 			result;
 
 		if (sessionId !== null) {
@@ -210,7 +211,13 @@
 				throw new Error('simulated error at ' + this._restConfig.simulateErrorRatePercentage + '% rate');
 			}
 
-			result = handler.apply(context || {}, callArguments.concat([session, req, res, next]));
+			extra = {
+				req: req,
+				res: res,
+				next: next
+			};
+
+			result = handler.apply(context || {}, callArguments.concat([session, extra]));
 		} catch (e) {
 			result = e;
 		}
@@ -298,14 +305,14 @@
 	};
 
 	RestService.prototype._addApiReferenceHandler = function() {
-		this.addHandler('', '', 'get', [], function(session, req, res, next) {
+		this.addHandler('', '', 'get', [], function(session, extra) {
 			var html = this._getApiReferenceHtml();
 
-			res.setHeader('Content-Type', 'text/html');
-       		res.writeHead(200);
-			res.end(html);
+			extra.res.setHeader('Content-Type', 'text/html');
+       		extra.res.writeHead(200);
+			extra.res.end(html);
 
-			next();
+			extra.next();
 
 			return true;
 		}, this);
@@ -319,56 +326,56 @@
 
 		this.serveFiles(tester.files);
 
-		this.addHandler('', 'test', 'get', [], function(session, req, res, next) {
-			res.setHeader('Content-Type', 'text/html');
-       		res.writeHead(200);
-			res.end(tester.html);
+		this.addHandler('', 'test', 'get', [], function(session, extra) {
+			extra.res.setHeader('Content-Type', 'text/html');
+       		extra.res.writeHead(200);
+			extra.res.end(tester.html);
 
-			next();
+			extra.next();
 
 			return true;
 		}, this);
 	};
 
 	RestService.prototype._addRestApiGeneratorHandler = function() {
-		this.addHandler('', 'rest', 'get', ['name'], function(name, session, req, res, next) {
+		this.addHandler('', 'rest', 'get', ['name'], function(name, session, extra) {
 			var script = this._getRestApiScript(name);
 
-			res.setHeader('Content-Type', 'application/javascript');
-       		res.writeHead(200);
-			res.end(script);
+			extra.res.setHeader('Content-Type', 'application/javascript');
+       		extra.res.writeHead(200);
+			extra.res.end(script);
 
-			next();
+			extra.next();
 
 			return true;
 		}, this);
 	};
 
 	RestService.prototype._addWebsocketApiGeneratorHandler = function() {
-		this.addHandler('', 'ws', 'get', ['name'], function(name, session, req, res, next) {
+		this.addHandler('', 'ws', 'get', ['name'], function(name, session, extra) {
 			name = name || 'Api';
 
 			var script = this._getWebsocketApiScript(name);
 
-			res.setHeader('Content-Type', 'application/javascript');
-       		res.writeHead(200);
-			res.end(script);
+			extra.res.setHeader('Content-Type', 'application/javascript');
+       		extra.res.writeHead(200);
+			extra.res.end(script);
 
-			next();
+			extra.next();
 
 			return true;
 		}, this);
 	};
 
 	RestService.prototype._addJsonGeneratorHandler = function() {
-		this.addHandler('', 'json', 'get', [], function(session, req, res, next) {
+		this.addHandler('', 'json', 'get', [], function(session, extra) {
 			var json = this._getInfoJson();
 
-			res.setHeader('Content-Type', 'application/json');
-       		res.writeHead(200);
-			res.end(json);
+			extra.res.setHeader('Content-Type', 'application/json');
+       		extra.res.writeHead(200);
+			extra.res.end(json);
 
-			next();
+			extra.next();
 
 			return true;
 		}, this);
