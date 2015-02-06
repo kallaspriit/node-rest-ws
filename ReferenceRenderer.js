@@ -201,11 +201,11 @@
 
 			switch (parameterType) {
 				case 'boolean':
-					html += '<div class="checkbox"><label><input type="checkbox" name="' + argumentName + '" value="true" id="' + ref + '" placeholder="' + description + '" data-type="' + parameterType + '"></label></div>';
+					html += '<div class="checkbox"><label><input type="checkbox" name="' + argumentName + '" value="true" id="' + ref + '" placeholder="' + description.replace(/"/g, '&quot;') + '" data-type="' + parameterType + '"></label></div>';
 				break;
 
 				default:
-					html += '<input type="text" name="' + argumentName + '" class="form-control" id="' + ref + '" placeholder="' + description + '" data-type="' + parameterType + '">';
+					html += '<input type="text" name="' + argumentName + '" class="form-control" id="' + ref + '" placeholder="' + description.replace(/"/g, '&quot;') + '" data-type="' + parameterType + '">';
 				break;
 			}
 
