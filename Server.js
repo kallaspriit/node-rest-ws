@@ -18,11 +18,9 @@
 		this._sessionManager = new SessionManager();
 		this._restService = new RestService();
 		this._websocketService = new WebsocketService();
+		this._isInitialized = false;
 
 		this._setupLogger();
-
-		this._restService.init(this._sessionManager, this._config.rest, this._config.websocket, this._config.version);
-		this._websocketService.init(this._sessionManager, this._config.websocket);
 	}
 
 	Server.prototype.getSessionManager = function() {
@@ -45,8 +43,21 @@
 		this._restService.setSpecs(specs);
 	};
 
+	Server.prototype.init = function() {
+		if (this._isInitialized) {
+			return;
+		}
+
+		this._isInitialized = true;
+
+		this._restService.init(this._sessionManager, this._config.rest, this._config.websocket, this._config.version);
+		this._websocketService.init(this._sessionManager, this._config.websocket);
+	};
+
 	Server.prototype.start = function() {
 		var deferred = new Deferred();
+
+		this._sessionManager.init();
 
 		when(
 			this._restService.start(),
@@ -65,6 +76,10 @@
 
 	Server.prototype.addApi = function(name, instance) {
 		log.info('adding api "' + name + '"');
+
+		if (!this._isInitialized) {
+			this.init();
+		}
 
 		instance.sessionManager = this._sessionManager;
 

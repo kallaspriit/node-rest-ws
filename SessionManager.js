@@ -18,11 +18,11 @@
 	SessionManager.Session = function(info) {
 		info = info || {};
 
-		this.id = this.generateSessionId();
-		this.created = new Date();
-		this.updated = new Date();
-
 		extend(this, info);
+
+		this.id = info.id || this.generateSessionId();
+		this.created = typeof this.created !== 'undefined' ? new Date(this.created) : new Date();
+		this.updated = typeof this.updated !== 'undefined' ? new Date(this.updated) : new Date();
 	};
 
 	SessionManager.Session.prototype.isExpired = function() {
@@ -39,6 +39,10 @@
 
 	SessionManager.Session.prototype.generateSessionId = function() {
 		return crypto.randomBytes(32).toString('hex');
+	};
+
+	SessionManager.prototype.init = function() {
+		this.onLoad();
 	};
 
 	SessionManager.prototype.create = function(info) {
@@ -76,6 +80,8 @@
 
 		session.update();
 
+		this.onUpdate(session);
+
 		return session;
 	};
 
@@ -92,6 +98,9 @@
 
 		return session;
 	};
+
+	SessionManager.prototype.onLoad = function() {}
+	SessionManager.prototype.onUpdate = function(session) {}
 
 	context.exports = SessionManager;
 })(module);
