@@ -196,8 +196,8 @@
 
 			html +=
 				'<div class="form-group">\
-					<label for="' + ref + '" class="col-sm-2 control-label">' + label + '</label>\
-					<div class="col-sm-10">';
+					<label for="' + ref + '" class="col-sm-4 control-label">' + label + '</label>\
+					<div class="col-sm-8">';
 
 			switch (parameterType) {
 				case 'boolean':

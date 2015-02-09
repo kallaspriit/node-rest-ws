@@ -154,13 +154,18 @@
 	 */
 	AbstractService.prototype._normalizeType = function(param) {
 		var key,
-			i;
+			i,
+			parsedInt,
+			parsedFloat;
 
 		if (typeof param === 'string') {
-			if (parseInt(param, 10) == param) {
-				return parseInt(param, 10);
-			} else if (parseFloat(param) == param) {
-				return parseFloat(param);
+			parsedInt = parseInt(param, 10);
+			parsedFloat = parseFloat(param);
+
+			if (parsedInt.toString().length === param.length && parsedInt == param) {
+				return parsedInt;
+			} else if (parsedFloat.toString().length === param.length && parsedFloat == param) {
+				return parsedFloat;
 			} else if (param.toLowerCase(param) === 'true') {
 				return true;
 			} else if (param.toLowerCase(param) === 'false') {
