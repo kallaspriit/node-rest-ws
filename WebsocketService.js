@@ -461,7 +461,7 @@
 	WebsocketService.prototype._onClientRpc = function(client, rpc) {
 		var handlerInfo = this.getHandlerByMethod(rpc.method),
 			callArguments = [],
-			foundInvalidParam = false,
+			//foundInvalidParam = false,
 			extra;
 
 		log.info('#' + client.id + ' RECV: ' + JSON.stringify(rpc));
@@ -484,7 +484,7 @@
 		}
 
 		handlerInfo.argumentNames.forEach(function(argumentName) {
-			if (foundInvalidParam) {
+			/*if (foundInvalidParam) {
 				return;
 			}
 
@@ -496,14 +496,14 @@
 				);
 
 				foundInvalidParam = true;
-			}
+			}*/
 
 			callArguments.push(rpc.params[argumentName]);
 		});
 
-		if (foundInvalidParam) {
+		/*if (foundInvalidParam) {
 			return result;
-		}
+		}*/
 
 		extra = {
 			client: client,

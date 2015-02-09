@@ -198,9 +198,9 @@
 
 		try {
 			argumentNames.forEach(function(argumentName) {
-				if (typeof req.params[argumentName] === 'undefined') {
+				/*if (typeof req.params[argumentName] === 'undefined') {
 					throw new restify.InvalidArgumentError('Missing argument "' + argumentName + '"');
-				}
+				}*/
 
 				callArguments.push(req.params[argumentName]);
 			});

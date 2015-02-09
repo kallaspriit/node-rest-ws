@@ -37,6 +37,18 @@
 			functionInfo = classInfo.functions[i];
 
 			if (functionInfo.name === methodName) {
+				functionInfo.getArgumentInfo = function(argumentName) {
+					var j;
+
+					for (j = 0; j < functionInfo.parameters.length; j++) {
+						if (functionInfo.parameters[j].name === argumentName) {
+							return functionInfo.parameters[j];
+						}
+					}
+
+					return null;
+				};
+
 				return functionInfo;
 			}
 		}

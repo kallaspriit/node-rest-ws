@@ -52,8 +52,6 @@
 
 		this.setupSession(session);
 
-		log.info('created session', info, session);
-
 		return session;
 	};
 

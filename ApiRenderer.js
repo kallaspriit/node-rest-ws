@@ -119,10 +119,15 @@
 		var result = [objectName ? ' * @param {object} ' + objectName : null];
 
 		return result.concat(parameters.map(function(parameter) {
-			var type = parameter.type ? '{' + parameter.type + '} ' : '';
+			var type = parameter.type ? '{' + parameter.type + '} ' : '',
+				name = (objectName ? objectName + '.' : '') + parameter.name;
+
+			if (parameter.optional === true) {
+				name = '[' + name + ']';
+			}
 
 			return [
-				' * @param ' + type + (objectName ? objectName + '.' : '') + parameter.name + ' ' + parameter.description
+				' * @param ' + type + name + ' ' + parameter.description
 			];
 		}));
 	};
@@ -134,13 +139,30 @@
 
 		return namespaceHandlers.map(function(handler, index) {
 			var methodName = util.convertCallableName(handler.method + '-' + handler.name),
-				methodInfo = this._apiDoc.getMethodInfo(namespace, methodName);
+				methodInfo = this._apiDoc.getMethodInfo(namespace, methodName),
+				requiredArguments,
+				argumentInfo,
+				i;
+
+			if (methodInfo !== null) {
+				requiredArguments = [];
+
+				for (i = 0; i < handler.argumentNames.length; i++) {
+					argumentInfo = methodInfo.getArgumentInfo(handler.argumentNames[i]);
+
+					if (argumentInfo === null || argumentInfo.optional !== true) {
+						requiredArguments.push(handler.argumentNames[i]);
+					}
+				}
+			} else {
+				requiredArguments = handler.argumentNames;
+			}
 
 			return [
 				'',
 				methodInfo !== null ? this._renderMethodDoc(methodInfo) : null,
 				util.convertCallableName(handler.name) + ': function(parameters) {',
-				'	validateParameters(parameters, ' + JSON.stringify(handler.argumentNames) + ');',
+				'	validateParameters(parameters, ' + JSON.stringify(requiredArguments) + ');',
 				'',
 				'	return transport.request(\'' + handler.namespace + '\', \'' + handler.name + '\', \'' + handler.method + '\', \'' + handler.route + '\', parameters);',
 				'}' + (index < namespaceHandlers.length - 1 ? ',' : '')
