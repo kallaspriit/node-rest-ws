@@ -1,7 +1,12 @@
 (function(context) {
 	'use strict';
 
-	function AbstractService() {}
+	var util = require('./Util');
+
+	function AbstractService() {
+		this._apis = {};
+		this.api = {};
+	}
 
 	AbstractService.prototype.init = function(config) {
 		void(config);
@@ -16,6 +21,7 @@
 			handlerSignature;
 
 		this._apis[namespace] = api;
+		this.api[util.convertCallableName(namespace)] = api;
 
 		for (functionName in api) {
 			if (
@@ -50,6 +56,10 @@
 				);
 			} catch (e) {}
 		}
+	};
+
+	AbstractService.prototype.getApis = function() {
+		return this._apis;
 	};
 
 	AbstractService.prototype.start = function(startedCallback) {
@@ -116,7 +126,7 @@
 					continue;
 				}
 
-				this._apis[namespace].api[innerNamespace] = this._apis[innerNamespace];
+				this._apis[namespace].api[util.convertCallableName(innerNamespace)] = this._apis[innerNamespace];
 			}
 		}
 	};

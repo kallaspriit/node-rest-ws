@@ -65,7 +65,7 @@
 
 		this._config.host = config.bindHost;
 
-		log.info('initiating', this._config);
+		//log.info('initiating', this._config);
 
 		this._server = new WebSocketServer(this._config);
 		this._server.on('connection', this._onClientConnected.bind(this));
@@ -85,6 +85,21 @@
 
 	WebsocketService.prototype.getClients = function() {
 		return this._clients;
+	};
+
+	WebsocketService.prototype.getClientById = function(id) {
+		var client = null,
+			i;
+
+		for (i = 0; i < this._clients.length; i++) {
+			if (this._clients[i].id === id) {
+				client = this._clients[i];
+
+				break;
+			}
+		}
+
+		return client;
 	};
 
 	WebsocketService.prototype.addHandler = function(namespace, name, method, argumentNames, handler, context) {
@@ -169,6 +184,9 @@
 			this._clients[i].request(method, params);
 		}
 	};
+
+	WebsocketService.prototype.onClientConnected = function(client) {};
+	WebsocketService.prototype.onClientDisconnected = function(client) {};
 
 	WebsocketService.prototype._onClientConnected = function(client) {
 		var service = this;
@@ -258,6 +276,8 @@
 				log.warn('sending error response failed');
 			}
 		};
+
+		this.onClientConnected(client);
 	};
 
 	WebsocketService.prototype._onClientDisconnected = function(client, code, message) {
@@ -278,6 +298,8 @@
 			'#' + client.id + ' disconnected (' + code + ' - ' + (message.length > 0 ? message : 'n/a') + '), ' +
 			'there are now ' + this._clients.length + ' left'
 		);
+
+		this.onClientDisconnected(client);
 	};
 
 	WebsocketService.prototype._onClientError = function(client, error) {
@@ -464,7 +486,7 @@
 			//foundInvalidParam = false,
 			extra;
 
-		log.info('#' + client.id + ' RECV: ' + JSON.stringify(rpc));
+		//log.info('#' + client.id + ' RECV: ' + JSON.stringify(rpc));
 
 		if (handlerInfo === null) {
 			return new WebsocketService.ErrorResult(
@@ -555,7 +577,7 @@
 			return;
 		}
 
-		log.info('simulating latency', this._config.simulateLatency);
+		//log.info('simulating latency', this._config.simulateLatency);
 
 		if (this._config.simulateLatency === 0) {
 			client.send(payload);
