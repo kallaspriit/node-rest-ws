@@ -12,6 +12,19 @@
 					expectedTypes = [expectedTypes];
 				}
 
+				expectedTypes = expectedTypes.map(function(expectedType) {
+					switch (expectedType) {
+						// map human-readable types to values returned by Object.prototype.toString
+						case 'array':
+							return '[object Array]';
+
+						default:
+							return expectedType;
+					}
+				});
+
+				console.log('requireType', realType, typeName, expectedTypeNames);
+
 				if (expectedTypes.indexOf(realType) === -1 && expectedTypes.indexOf(typeName) === -1) {
 					var expectedTypeNames;
 
@@ -22,7 +35,8 @@
 					}
 
 					throw new Errors.InvalidParameter(
-						'Parameter "' + name + '" is expected to be ' + expectedTypeNames + ', but got a "' + realType + '"'
+						'Parameter "' + name + '" is expected to be ' + expectedTypeNames +
+						', but got a "' + typeName + '"'
 					);
 				}
 
@@ -84,6 +98,15 @@
 			boolean: requireType(value, name, ['boolean']),
 			object: requireType(value, name, ['object']),
 			array: requireType(value, name, ['[object Array]']),
+			type: function(expectedTypes) {
+				if (arguments.length > 1) {
+					expectedTypes = Array.prototype.slice.call(arguments);
+				} else if (typeof expectedTypes === 'string') {
+					expectedTypes = [expectedTypes];
+				}
+
+				requireType(value, name, expectedTypes)();
+			}
 		};
 
 		result.toBe = result;
