@@ -87,6 +87,10 @@
 		this._websocketService.addApi(name, instance);
 	};
 
+	Server.prototype.serveFile = function(filename, name, type) {
+		this._restService.serveFile(filename, name, type);
+	};
+
 	Server.prototype.findApisInDirectory = function(directory, globPattern) {
 		directory = directory || 'api';
 		globPattern = globPattern || '*-api.js';

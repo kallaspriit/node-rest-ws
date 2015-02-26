@@ -9,6 +9,13 @@ var WebsocketTransport = function(host, port) {
 	this._init();
 };
 
+WebsocketTransport.State = WebsocketTransport.prototype.State = {
+	CONNECTING: 'CONNECTING',
+	OPEN: 'OPEN',
+	CLOSING: 'CLOSING',
+	CLOSED: 'CLOSED'
+};
+
 WebsocketTransport.prototype.request = function(namespace, service, method, route, parameters, deferred) {
 	parameters = parameters || {};
 
@@ -129,15 +136,15 @@ WebsocketTransport.prototype._onMessage = function(message) {
 WebsocketTransport.prototype.getState = function() {
 	switch (this._ws.readyState) {
 		case WebSocket.CONNECTING:
-			return 'CONNECTING';
+			return WebsocketTransport.State.CONNECTING;
 
 		case WebSocket.OPEN:
-			return 'OPEN';
+			return WebsocketTransport.State.OPEN;
 
 		case WebSocket.CLOSING:
-			return 'CLOSING';
+			return WebsocketTransport.State.CLOSING;
 
 		case WebSocket.CLOSED:
-			return 'CLOSED';
+			return WebsocketTransport.State.CLOSED;
 	}
 };

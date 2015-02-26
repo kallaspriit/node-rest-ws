@@ -23,8 +23,6 @@
 					}
 				});
 
-				console.log('requireType', realType, typeName, expectedTypeNames);
-
 				if (expectedTypes.indexOf(realType) === -1 && expectedTypes.indexOf(typeName) === -1) {
 					var expectedTypeNames;
 
