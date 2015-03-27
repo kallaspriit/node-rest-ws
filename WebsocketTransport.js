@@ -66,6 +66,10 @@ WebsocketTransport.prototype._init = function() {
 	this._ws.onclose = this._onClose.bind(this);
 };
 
+WebsocketTransport.prototype.reconnect = function() {
+	this._init();
+};
+
 WebsocketTransport.prototype._onOpen = function() {
 	var queuedRequest;
 

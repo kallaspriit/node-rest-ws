@@ -135,11 +135,15 @@
 		}.bind(this));
 	};
 
-	RestService.prototype.serveFile = function(filename, name, type) {
+	RestService.prototype.serveFile = function(filename, name, type, preprocessor) {
 		this.addHandler('', name, 'get', [], function(session, extra) {
 			var content = fs.readFileSync(filename, {
 				encoding: 'utf-8'
 			});
+
+			if (typeof preprocessor === 'function') {
+				content = preprocessor(content);
+			}
 
 			extra.res.setHeader('Content-Type', type);
        		extra.res.writeHead(200);
