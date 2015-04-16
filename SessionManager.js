@@ -53,6 +53,8 @@
 	SessionManager.prototype.create = function(info) {
 		var session = new SessionManager.Session(info);
 
+		session._config = this._config;
+
 		this._sessions[session.id] = session;
 
 		this.setupSession(session);
