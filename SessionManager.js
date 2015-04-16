@@ -4,9 +4,13 @@
 	var crypto = require('crypto'),
 		extend = require('extend'),
 		util = require('./Util'),
-		log = require('logviking').logger.get('SessionInterface');
+		log = require('logviking').logger.get('SessionManager');
 
-	var SessionManager = function() {
+	var SessionManager = function(config) {
+		this._defaultConfig = {
+			expireMilliseconds: 24 * 60 * 60 * 1000 // 24 hours
+		};
+		this._config = extend({}, this._defaultConfig, config || {});
 		this._sessions = {};
 	};
 
@@ -27,10 +31,9 @@
 
 	SessionManager.Session.prototype.isExpired = function() {
 		var currentTimestamp = (new Date()).getTime(),
-			updatedTimestamp = this.updated.getTime(),
-			expireMilliseconds = 24 * 60 * 60 * 1000; // 24 hours
+			updatedTimestamp = this.updated.getTime();
 
-		return currentTimestamp - updatedTimestamp > expireMilliseconds;
+		return currentTimestamp - updatedTimestamp > this._config.expireMilliseconds;
 	};
 
 	SessionManager.Session.prototype.update = function() {
@@ -42,6 +45,8 @@
 	};
 
 	SessionManager.prototype.init = function() {
+		log.info('inititate', this._config);
+
 		this.onLoad();
 	};
 
