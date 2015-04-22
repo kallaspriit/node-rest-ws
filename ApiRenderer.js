@@ -57,12 +57,22 @@
 
 	ApiRenderer.prototype._renderBody = function() {
 		return [
+			this._renderPromiseClass(),
+			this._renderXhrClass(),
 			this._renderTransportClass(),
 			this._renderPrivateMethods(),
 			this._renderPrivateVariables(),
 			this._renderClassHeader(),
 			this._renderClassFooter()
 		];
+	};
+
+	ApiRenderer.prototype._renderPromiseClass = function() {
+		return this._readFile('Promise.js').split('\n').concat('');
+	};
+
+	ApiRenderer.prototype._renderXhrClass = function() {
+		return this._readFile('Xhr.js').split('\n').concat('');
 	};
 
 	ApiRenderer.prototype._renderTransportClass = function() {

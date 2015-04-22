@@ -18,9 +18,10 @@
 		util = require('./Util'),
 		log = require('logviking').logger.get('RestService');
 
-	function RestService() {
+	function RestService(host) {
 		AbstractService.call(this);
 
+		this._host = host;
 		this._server = null;
 		this._sessionManager = null;
 		this._restConfig = {
@@ -246,7 +247,7 @@
 					return;
 				}
 
-				this._respond(response, res, next);
+				this._respond(response, res, next, session);
 			}.bind(this))
 			.fail(function(reason) {
 				if (requestTimeout !== null) {
@@ -263,11 +264,11 @@
 
 				log.warn('request failed', reason);
 
-				this._respond(reason, res, next);
+				this._respond(reason, res, next, session);
 			}.bind(this));
 	};
 
-	RestService.prototype._respond = function(response, res, next) {
+	RestService.prototype._respond = function(response, res, next, session) {
 		var statusCode = 200,
 			payload = response;
 
@@ -284,6 +285,25 @@
 				message: response.message,
 				trace: util.getErrorStacktrace(response)
 			};
+
+			if (statusCode === 500) {
+				if (typeof this._host.onError === 'function') {
+					try {
+						this._host.onError({
+							status: statusCode,
+							error: payload.error,
+							message: payload.message,
+							trace: payload.trace
+						}, session);
+					} catch (e) {
+						log.warn('server failed to handle error (' + e.message + ')');
+					}
+				} else {
+					log.error(payload.error + ': ' + payload.message);
+				}
+			} else {
+				log.warn(payload.error + ': ' + payload.message);
+			}
 		}
 
 		if (this._restConfig.simulateLatency === 0) {

@@ -11,9 +11,10 @@
 		util = require('./Util'),
 		log = require('logviking').logger.get('WebsocketService');
 
-	function WebsocketService() {
+	function WebsocketService(host) {
 		AbstractService.call(this);
 
+		this._host = host;
 		this._sessionManager = null;
 		this._server = null;
 		this._config = {
@@ -550,6 +551,10 @@
 			response,
 			payload;
 
+		results.forEach(function(result) {
+			this._checkForError(result, client);
+		}.bind(this));
+
 		if (results.length > 1) {
 			response = results;
 			isBatchRequest = true;
@@ -585,6 +590,27 @@
 			setTimeout(function() {
 				client.send(payload);
 			}, this._config.simulateLatency);
+		}
+	};
+
+	WebsocketService.prototype._checkForError = function(result, client) {
+		if (result.status === 500) {
+			if (typeof this._host.onError === 'function') {
+				try {
+					this._host.onError({
+						status: result.status,
+						error: result.error,
+						message: result.message,
+						trace: result.trace
+					}, client.session);
+				} catch (e) {
+					log.warn('server failed to handle error (' + e.message + ')');
+				}
+			} else {
+				log.error(result.error + ': ' + result.message);
+			}
+		} else if (typeof result.status === 'number' && result.status !== 200) {
+			log.warn(result.error + ': ' + result.message);
 		}
 	};
 

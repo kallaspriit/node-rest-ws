@@ -19,14 +19,7 @@ HttpTransport.prototype.request = function(namespace, service, method, route, pa
 			throw new Error('Request method "' + method + '" is not supported');
 	}
 
-	var result = $.ajax({
-		url: url,
-		type: method,
-		data: method === 'post' ? parameters : null,
-		xhrFields: {
-			withCredentials: true
-		}
-	});
+	var result = xhrRequest(method, url, parameters);
 
 	// TODO keep this?
 	result.dbg = function() {

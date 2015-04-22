@@ -14,10 +14,11 @@
 		log = logger.get('Server');
 
 	function Server(config) {
+		this._apis = {};
 		this._config = config;
 		this._sessionManager = new SessionManager();
-		this._restService = new RestService();
-		this._websocketService = new WebsocketService();
+		this._restService = new RestService(this);
+		this._websocketService = new WebsocketService(this);
 		this._isInitialized = false;
 
 		this._setupLogger();
@@ -83,9 +84,14 @@
 
 		instance.sessionManager = this._sessionManager;
 
+		this._apis[name] = instance;
 		this._restService.addApi(name, instance);
 		this._websocketService.addApi(name, instance);
 	};
+
+	Server.prototype.getApi = function(name) {
+		return this._apis[name] || null;
+	}
 
 	Server.prototype.serveFile = function(filename, name, type, preprocessor) {
 		this._restService.serveFile(filename, name, type, preprocessor);
@@ -127,6 +133,10 @@
 		});
 
 		return specs;
+	};
+
+	Server.prototype.onError = function(info, session) {
+		log.error(info.error + ': ' + info.message);
 	};
 
 	Server.prototype._setupLogger = function() {

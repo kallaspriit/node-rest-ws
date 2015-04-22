@@ -19,7 +19,7 @@ WebsocketTransport.State = WebsocketTransport.prototype.State = {
 WebsocketTransport.prototype.request = function(namespace, service, method, route, parameters, deferred) {
 	parameters = parameters || {};
 
-	var deferred = deferred || new $.Deferred(),
+	var deferred = deferred || new Promise(),
 		id = this._requestIdCounter++,
 		request = {
 			namespace: namespace,
